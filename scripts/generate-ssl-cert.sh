@@ -49,7 +49,7 @@ result_code=0;
 
 #Request for certificates
 resp="An unexpected error occurred:\nReadTimeout: HTTPSConnectionPool(host='acme-v02.api.letsencrypt.org', port=443): Read timed out. (read timeout=45)\nPlease see the logfiles in /var/log/letsencrypt for more details."
-result_code=$?;
+result_code=1;
 
 [[ "$webroot" == "false" ]] && {
     iptables -t nat -D PREROUTING -p tcp -m tcp ! -s 127.0.0.1/32 --dport 80 -j REDIRECT --to-ports ${PROXY_PORT}
