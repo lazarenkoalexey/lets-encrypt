@@ -48,7 +48,7 @@ mkdir -p $DIR/var/log/letsencrypt
 result_code=0;
 
 #Request for certificates
-resp=$($DIR/opt/letsencrypt/letsencrypt-auto certonly $params $test_params --domain $domain --preferred-challenges http-01 --renew-by-default --email $email --agree-tos --no-bootstrap --no-self-upgrade --no-eff-email --logs-dir $DIR/var/log/letsencrypt 2>&1)
+resp="An unexpected error occurred:\nReadTimeout: HTTPSConnectionPool(host='acme-v02.api.letsencrypt.org', port=443): Read timed out. (read timeout=45)\nPlease see the logfiles in /var/log/letsencrypt for more details."
 result_code=$?;
 
 [[ "$webroot" == "false" ]] && {
