@@ -37,6 +37,7 @@ function SSLManager(config) {
         ENVIRONMENT_EXT_DOMAIN_IS_BUSY = 2330,
         ANCIENT_VERSION_OF_PYTHON = 4,
         INVALID_WEBROOT_DIR = 5,
+        READ_TIMED_OUT = 6,
         VALIDATION_SCRIPT = "validation.sh",
         Random = com.hivext.api.utils.Random,
         LIGHT = "LIGHT",
@@ -958,6 +959,17 @@ function SSLManager(config) {
             };
         }
 
+        if (resp.result && resp.result == READ_TIMED_OUT) {
+            text = "The Let's Encrypt service is currently unavailable. Check the /var/log/letsencrypt log for more details or try again in a few minutes.";
+            return {
+                result: READ_TIMED_OUT,
+                error: text,
+                response: text,
+                type: "warning",
+                message: text
+            };
+        }
+
         return resp;
     };
     
@@ -985,6 +997,7 @@ function SSLManager(config) {
             if (resp) {
                 if (resp.exitStatus == ANCIENT_VERSION_OF_PYTHON) return {result: ANCIENT_VERSION_OF_PYTHON };
                 if (resp.exitStatus == INVALID_WEBROOT_DIR) return { result: INVALID_WEBROOT_DIR}
+                if (resp.exitStatus == READ_TIMED_OUT) return { result: READ_TIMED_OUT}
             }
 
             //just cutting "out" for debug logging because it's too long in SSL generation output
