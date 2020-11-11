@@ -150,7 +150,7 @@ function validateCustomSSL() {
 
 function runAllChecks(){
    validateExtIP
-   validateDNSSettings
+   #validateDNSSettings
    validateCertBot
    echo "All validations are passed succesfully";
 }
