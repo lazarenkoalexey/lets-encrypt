@@ -25,6 +25,7 @@ params='';
     [[ ! -z ${WEBROOT} ]] && { webrootPath="${WEBROOT}/ROOT/"; } || { echo "Webroot path is not set"; exit 3; }
 }
 [[ "$webroot" == "true" && ! -z "$webrootPath" ]] && { params="-a webroot --webroot-path ${webrootPath}"; } || { params=" --standalone --http-01-port ${LE_PORT} "; }
+[ ! -z "$skipped_domains" ] && domain+=" -d "$skipped_domains
 [[ -z "$domain" ]] && domain=$appdomain;
 params+=' --allow-subset-of-names'
 
