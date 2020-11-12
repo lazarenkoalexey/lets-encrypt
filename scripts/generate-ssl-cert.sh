@@ -52,7 +52,7 @@ result_code=0;
 #check for unavailable domains
 resp=$($DIR/opt/letsencrypt/letsencrypt-auto certonly --dry-run $params $test_params --domain $domain --preferred-challenges http-01 --renew-by-default --email $email --agree-tos --no-bootstrap --no-self-upgrade --no-eff-email --logs-dir $DIR/var/log/letsencrypt 2>&1) 
 
-parseDomains $resp
+parseDomains "${resp}"
 
 #Request for certificates
 resp=$($DIR/opt/letsencrypt/letsencrypt-auto certonly $params $test_params --domain $domain --preferred-challenges http-01 --renew-by-default --email $email --agree-tos --no-bootstrap --no-self-upgrade --no-eff-email --logs-dir $DIR/var/log/letsencrypt 2>&1)
