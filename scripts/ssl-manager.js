@@ -975,10 +975,12 @@ function SSLManager(config) {
     };
 
     me.analyzeSslResponse = function (resp) {
+        log("resp-> " + resp);
         var out,
             errors;
 
         if (resp.responses) {
+            log("in responses -> ");
             resp = resp.responses[0];
             out = resp.error + resp.errOut + resp.out;
 
@@ -996,13 +998,17 @@ function SSLManager(config) {
                 "Error: ": null
             };
 
+            log("resp-> " + resp);
             for (var start in errors) {
                 var end = errors[start];
                 var ind1 = out.indexOf(start);
 
+                log("end-> " + end);
+                log("ind1-> " + ind1);
                 if (ind1 != -1) {
                     var ind2 = end ? out.indexOf(end, ind1) : -1;
                     var message = ind2 == -1 ? out.substring(ind1).replace(start, "") : out.substring(ind1, ind2); //removed duplicated words in popup
+                    log("message-> " + message);
                     resp = error(Response.ERROR_UNKNOWN, message);
                     break;
                 }
