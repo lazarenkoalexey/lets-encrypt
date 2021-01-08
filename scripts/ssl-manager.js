@@ -979,6 +979,8 @@ function SSLManager(config) {
         var out,
             errors;
 
+        resp = resp.replace(/"/g, '&quot;');
+        
         if (resp.responses) {
             log("in responses -> ");
             resp = resp.responses[0];
