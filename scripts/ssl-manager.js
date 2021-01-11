@@ -1299,7 +1299,9 @@ function SSLManager(config) {
             html = new Transport().get(me.getFileUrl(filePath));
 
             if (values) {
+                log("html ->" + html);
                 html = me.replaceText(html, values);
+                log("html ->" + html);
             }
 
             resp = jelastic.message.email.Send(appid, session, null, email, email, me.getEmailTitle(title), html);
