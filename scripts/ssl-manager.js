@@ -96,9 +96,9 @@ function SSLManager(config) {
                 error : "unknown action [" + action + "]"
             }
         }
-        
+
         me.init();
-        
+
         return actions[action].call(me);
     };
 
@@ -960,7 +960,7 @@ function SSLManager(config) {
 
         return resp;
     };
-    
+
     me.getOnlyCustomDomains = function () {
         var regex = new RegExp("\\s*" + config.envDomain + "\\s*");
         return String(java.lang.String(config.customDomains.replace(regex, " ")).trim());
@@ -995,7 +995,7 @@ function SSLManager(config) {
 
             errors = {
                 "An unexpected error": "Please see",
-                "The following errors": "appid =",
+                "- The following errors": "",
                 "Error: ": null
             };
 
@@ -1010,7 +1010,7 @@ function SSLManager(config) {
                     var ind2 = end ? out.indexOf(end, ind1) : -1;
                     log("substr ->");
                     log("ind2 ->" + ind2);
-                    var message = ind2 == -1 ? out.substr(ind1).replace(start, "") : out.substring(ind1, ind2); //removed duplicated words in popup
+                    var message = ind2 == -1 ? out.substring(ind1).replace(start, "") : out.substring(ind1, ind2); //removed duplicated words in popup
                     log("message-> " + message);
                     resp = error(Response.ERROR_UNKNOWN, message);
                     break;
@@ -1417,7 +1417,7 @@ function SSLManager(config) {
         me.setValidationScriptUrl = function(url) {
             sValidationUrl = url;
         };
-        
+
         me.getValidationScriptUrl = function() {
             return sValidationUrl;
         };
@@ -1425,7 +1425,7 @@ function SSLManager(config) {
         me.setValidationPath = function(scriptName) {
             sValidationPath = me.getScriptPath(scriptName);
         };
-        
+
         me.getValidationPath = function() {
             return sValidationPath;
         };
@@ -1467,7 +1467,7 @@ function SSLManager(config) {
         me.isBalancerLayer = function (group) {
             return !!(group == LB || group == BL);
         };
-        
+
         me.isComputeLayer = function (group) {
             return !!(group == CP);
         };
@@ -1528,7 +1528,7 @@ function SSLManager(config) {
 
             return { result : 0, node : node };
         };
-        
+
         me.isNodeExists = function isNodeExists() {
             var resp,
                 nodes,
@@ -1556,7 +1556,7 @@ function SSLManager(config) {
 
             return envInfo;
         };
-        
+
         me.updateEnvInfo = function updateEnvInfo() {
             return me.getEnvInfo(true);
         };
