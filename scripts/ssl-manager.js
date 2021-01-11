@@ -126,6 +126,7 @@ function SSLManager(config) {
             resp = me.exec(me.deploy);
         }
 
+        log("resp in me.install ->" + resp);
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
@@ -1279,6 +1280,7 @@ function SSLManager(config) {
             };            
         }
 
+        log("resp ->" + resp);
         return me.sendEmail("Error", "html/update-error.html", {
             SUPPORT_EMAIL : "support@jelastic.com",
             RESP : resp || ""
