@@ -1002,7 +1002,6 @@ function SSLManager(config) {
             log("resp-> " + resp);
             for (var start in errors) {
                 log("start-> " + start);
-                log("out-> " + out);
                 var end = errors[start];
                 var ind1 = out.indexOf(start);
 
@@ -1012,7 +1011,7 @@ function SSLManager(config) {
                     var ind2 = end ? out.indexOf(end, ind1) : -1;
                     log("substr ->");
                     log("ind2 ->" + ind2);
-                    var message = ind2 == -1 ? out.substring(ind1).replace(start, "") : out.substring(ind1, ind2); //removed duplicated words in popup
+                    var message = ind2 == -1 ? out.substring(ind1) : out.substring(ind1, ind2); //removed duplicated words in popup
                     log("message-> " + message);
                     resp = error(Response.ERROR_UNKNOWN, message);
                     break;
