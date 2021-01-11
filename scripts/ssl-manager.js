@@ -995,13 +995,14 @@ function SSLManager(config) {
 
             errors = {
                 "An unexpected error": "Please see",
-                "- The following errors": "appid =",
+                "- The following errors": "",
                 "Error: ": null
             };
 
             log("resp-> " + resp);
             for (var start in errors) {
                 log("start-> " + start);
+                log("out-> " + out);
                 var end = errors[start];
                 var ind1 = out.indexOf(start);
 
