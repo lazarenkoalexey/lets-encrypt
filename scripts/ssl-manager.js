@@ -1001,6 +1001,7 @@ function SSLManager(config) {
 
             log("resp-> " + resp);
             for (var start in errors) {
+                log("start-> " + start);
                 var end = errors[start];
                 var ind1 = out.indexOf(start);
 
