@@ -1290,6 +1290,14 @@ function SSLManager(config) {
         return title + ": Let's Encrypt SSL at " + config.envDomain;
     };
 
+    me.escapeHtmlEntities =  function (str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
     me.sendEmail = function (title, filePath, values) {
         var email = config.email,
             resp,
@@ -1301,7 +1309,8 @@ function SSLManager(config) {
             if (values) {
                 log("html ->" + html);
                 html = me.replaceText(html, values);
-                log("html ->" + html);
+                html = me.escapeHtmlEntities(html);
+                log("html  after escapeHtmlEntities->" + html);
             }
 
             resp = jelastic.message.email.Send(appid, session, null, email, email, me.getEmailTitle(title), html);
