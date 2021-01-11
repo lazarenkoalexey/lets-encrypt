@@ -984,7 +984,6 @@ function SSLManager(config) {
             log("in responses -> ");
             resp = resp.responses[0];
             out = resp.error + resp.errOut + resp.out;
-            out = out.replace(/"/g, '&quot;');
 
             if (resp) {
                 if (resp.exitStatus == ANCIENT_VERSION_OF_PYTHON) return {result: ANCIENT_VERSION_OF_PYTHON };
