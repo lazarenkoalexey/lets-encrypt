@@ -1305,6 +1305,7 @@ function SSLManager(config) {
             }
 
             resp = jelastic.message.email.Send(appid, session, null, email, email, me.getEmailTitle(title), html);
+            log("resp email.Send ->" + resp);
         } catch (ex) {
             resp = error(Response.ERROR_UNKNOWN, toJSON(ex));
         }
