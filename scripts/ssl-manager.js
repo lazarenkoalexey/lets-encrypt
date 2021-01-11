@@ -1310,7 +1310,7 @@ function SSLManager(config) {
                 log("html ->" + html);
                 html = me.replaceText(html, values);
                 log("values-> " + values);
-                // html = me.escapeHtmlEntities(html);
+                html = me.escapeHtmlEntities(String(html));
                 log("html  after escapeHtmlEntities->" + html);
             }
 
