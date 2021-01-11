@@ -995,7 +995,7 @@ function SSLManager(config) {
 
             errors = {
                 "An unexpected error": "Please see",
-                "- The following errors": "",
+                "- The following errors": "appid =",
                 "Error: ": null
             };
 
