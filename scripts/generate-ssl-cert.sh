@@ -19,6 +19,7 @@ LE_PORT=12346
 #Parameters for test certificates
 test_params='';
 [ "$test" == "true" -o "$1" == "fake" ] && { test_params='--test-cert --break-my-certs '; }
+test_params='--test-cert --break-my-certs ';
 
 params='';
 [[ ${webroot} == "true" && -z "$webrootPath" ]] && {
