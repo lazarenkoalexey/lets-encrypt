@@ -1283,6 +1283,8 @@ function SSLManager(config) {
             };            
         }
 
+        // html = me.escapeHtmlEntities(String(html));
+        log("resp in sendErrResp ->" + resp);
         return me.sendEmail("Error", "html/update-error.html", {
             SUPPORT_EMAIL : "support@jelastic.com",
             RESP : resp || ""
@@ -1311,9 +1313,6 @@ function SSLManager(config) {
 
             if (values) {
                 html = me.replaceText(html, values);
-                // log("values-> " + values);
-                // html = me.escapeHtmlEntities(String(html));
-                log("html ->" + html);
             }
 
             resp = jelastic.message.email.Send(appid, session, null, email, email, me.getEmailTitle(title), html);
