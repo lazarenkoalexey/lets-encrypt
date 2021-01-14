@@ -39,6 +39,7 @@ function SSLManager(config) {
         INVALID_WEBROOT_DIR = 5,
         VALIDATION_SCRIPT = "validation.sh",
         Random = com.hivext.api.utils.Random,
+        INSTALL = "install",
         LIGHT = "LIGHT",
         me = this,
         BL = "bl",
@@ -452,7 +453,7 @@ function SSLManager(config) {
             [ me.initEntryPoint ],
             [ me.validateEntryPoint ],
             [ me.createScript ],
-            [ me.evalScript, "install" ]
+            [ me.evalScript, INSTALL ]
         ]);
     };
 
@@ -933,14 +934,20 @@ function SSLManager(config) {
             me.exec(me.cmd, generateSSLScript + (bUpload ? "" : " --no-upload-certs"))
         );
 
-        if (config.action == "install" && config.fallbackToX1 && !me.getOnlyCustomDomains() && resp.result != 0) {
+        tmpResp = me.updateGeneratedCustomDomains();
+        if (tmpResp.result != 0) return tmpResp;
+
+        if (config.action == INSTALL && !me.getOnlyCustomDomains() && resp.result != 0) {
+            //TODO - add flag for unable to generate certs only for custom domains  
             resp = me.analyzeSslResponse(
                 me.exec(me.cmd, generateSSLScript + (bUpload ? "" : " --no-upload-certs") + (config.fallbackToX1 ? " fake" : ""))
             );
         }
 
-        tmpResp = me.updateGeneratedCustomDomains();
-        if (tmpResp.result != 0) return tmpResp;
+        log("me.getCustomDomains() ->" + me.getCustomDomains());
+        if (config.action == INSTALL && !me.getCustomDomains()) {
+
+        }
 
         if (!config.webroot) {
             //removing redirect
