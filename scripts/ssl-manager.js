@@ -1283,7 +1283,6 @@ function SSLManager(config) {
             };            
         }
 
-        log("resp ->" + resp);
         return me.sendEmail("Error", "html/update-error.html", {
             SUPPORT_EMAIL : "support@jelastic.com",
             RESP : resp || ""
@@ -1311,15 +1310,13 @@ function SSLManager(config) {
             html = new Transport().get(me.getFileUrl(filePath));
 
             if (values) {
-                log("html ->" + html);
                 html = me.replaceText(html, values);
-                log("values-> " + values);
+                // log("values-> " + values);
                 html = me.escapeHtmlEntities(String(html));
-                log("html  after escapeHtmlEntities->" + html);
+                // log("html  after escapeHtmlEntities->" + html);
             }
 
             resp = jelastic.message.email.Send(appid, session, null, email, email, me.getEmailTitle(title), html);
-            log("resp email.Send ->" + resp);
         } catch (ex) {
             resp = error(Response.ERROR_UNKNOWN, toJSON(ex));
         }
