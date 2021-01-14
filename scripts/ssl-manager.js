@@ -96,7 +96,7 @@ function SSLManager(config) {
                 error : "unknown action [" + action + "]"
             }
         }
-
+        
         me.init();
 
         return actions[action].call(me);
@@ -126,7 +126,7 @@ function SSLManager(config) {
             resp = me.exec(me.deploy);
         }
 
-        log("resp in me.install ->" + resp);
+        log("resp iin me.install ->" + resp);
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
@@ -894,6 +894,7 @@ function SSLManager(config) {
             validationFileName = VALIDATION_SCRIPT,
             generateSSLScript = nodeManager.getScriptPath(fileName),
             proxyConfigName = "tinyproxy.conf",
+            tmpResp,
             bUpload,
             text,
             resp;
@@ -937,6 +938,9 @@ function SSLManager(config) {
                 me.exec(me.cmd, generateSSLScript + (bUpload ? "" : " --no-upload-certs") + (config.fallbackToX1 ? " fake" : ""))
             );
         }
+
+        tmpResp = me.updateGeneratedCustomDomains();
+        if (tmpResp.result != 0) return tmpResp;
 
         if (!config.webroot) {
             //removing redirect
