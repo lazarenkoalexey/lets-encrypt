@@ -937,11 +937,21 @@ function SSLManager(config) {
         tmpResp = me.updateGeneratedCustomDomains();
         if (tmpResp.result != 0) return tmpResp;
 
-        if (config.action == INSTALL && !me.getOnlyCustomDomains() && resp.result != 0) {
-            //TODO - add flag for unable to generate certs only for custom domains  
-            resp = me.analyzeSslResponse(
-                me.exec(me.cmd, generateSSLScript + (bUpload ? "" : " --no-upload-certs") + (config.fallbackToX1 ? " fake" : ""))
-            );
+        if (resp.result != 0 && config.action == INSTALL) {
+            log("in first if");
+            if ((!me.getOnlyCustomDomains() && config.fallbackToX1) ||
+                (me.getOnlyCustomDomains() && !me.isEnvNameInDomains())) {
+                if (!me.isEnvNameInDomains()) {
+                    //setEnv domain to custom domains
+                    me.addEnvDomainToCustom();
+                }
+                log("in second if");
+                //TODO - add flag for unable to generate certs only for custom domains
+                //TODO - add env domain in custom domains
+                resp = me.analyzeSslResponse(
+                    me.exec(me.cmd, generateSSLScript + (bUpload ? "" : " --no-upload-certs") + (config.fallbackToX1 ? " fake" : ""))
+                );
+            }
         }
 
         log("me.getCustomDomains() ->" + me.getCustomDomains());
@@ -973,6 +983,15 @@ function SSLManager(config) {
         return resp;
     };
 
+    me.isEnvNameInDomains = function () {
+        var regex = new RegExp("\\s*" + config.envDomain + "\\s*");
+        return regex.test(config.customDomains);
+    };
+
+    me.addEnvDomainToCustom = function addEnvDomainToCustom() {
+        return me.exec(me.cmd, "sed -i \"s/^domain=''/domain='" + config.envDomain + "'/g\" /opt/letsencrypt/settings");
+    };
+
     me.getOnlyCustomDomains = function () {
         var regex = new RegExp("\\s*" + config.envDomain + "\\s*");
         return String(java.lang.String(config.customDomains.replace(regex, " ")).trim());
@@ -987,12 +1006,10 @@ function SSLManager(config) {
     };
 
     me.analyzeSslResponse = function (resp) {
-        log("resp-> " + resp);
         var out,
             errors;
 
         if (resp.responses) {
-            log("in responses -> ");
             resp = resp.responses[0];
             out = resp.error + resp.errOut + resp.out;
 
