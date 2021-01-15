@@ -128,7 +128,6 @@ function SSLManager(config) {
             resp = me.exec(me.deploy);
         }
 
-        log("resp iin me.install ->" + resp);
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
@@ -964,11 +963,6 @@ function SSLManager(config) {
             }
         }
 
-        log("me.getCustomDomains() ->" + me.getCustomDomains());
-        if (config.action == INSTALL && !me.getCustomDomains()) {
-
-        }
-
         if (!config.webroot) {
             //removing redirect
             me.exec(me.manageDnat, "remove");
@@ -1311,6 +1305,8 @@ function SSLManager(config) {
     me.sendErrResp = function sendErrResp(resp) {
         resp = resp || {};
 
+        log("in sendErrResp ->" + resp);
+        log("me.getSkippedDomains() ->" + me.getSkippedDomains());
         if (!me.getCustomDomains() && me.getSkippedDomains()) {
             resp = "Please note that the SSL certificates cannot be assigned to the available custom domains <b>" + me.formatDomains(me.getSkippedDomains()) + "</b> due to incorrect DNS settings.\n\n" +
                 "You can fix the issues with DNS records (IP addresses) via your domain admin panel or by removing invalid custom domains from Let's Encrypt settings.\n\n" +
