@@ -39,6 +39,7 @@ function SSLManager(config) {
         INVALID_WEBROOT_DIR = 5,
         VALIDATION_SCRIPT = "validation.sh",
         Random = com.hivext.api.utils.Random,
+        isAddedEnvDomain = false,
         INSTALL = "install",
         LIGHT = "LIGHT",
         me = this,
@@ -438,6 +439,10 @@ function SSLManager(config) {
             description: "update LE sertificate",
             params: { token: config.token, task: 1, action : "auto-update" }
         });
+    };
+
+    me.hasAddedEnvDomain = function () {
+        return isAddedEnvDomain;
     };
 
     me.hasValidToken = function () {
@@ -944,14 +949,18 @@ function SSLManager(config) {
             if (!me.getOnlyCustomDomains() && (config.fallbackToX1 || !me.isEnvNameInDomains())) {
                 if (!me.isEnvNameInDomains()) {
                     //setEnv domain to custom domains
+                    //TODO - add flag for unable to generate certs only for custom domains
+                    //TODO - add env domain in custom domains
                     me.addEnvDomainToCustom();
                 }
                 log("in second if");
-                //TODO - add flag for unable to generate certs only for custom domains
-                //TODO - add env domain in custom domains
                 resp = me.analyzeSslResponse(
                     me.exec(me.cmd, generateSSLScript + (bUpload ? "" : " --no-upload-certs") + (config.fallbackToX1 ? " fake" : ""))
                 );
+
+                if (me.hasAddedEnvDomain()) {
+                    me.removeEnvDomainFromCustom();
+                }
             }
         }
 
@@ -990,7 +999,13 @@ function SSLManager(config) {
     };
 
     me.addEnvDomainToCustom = function addEnvDomainToCustom() {
+        isAddedEnvDomain = true;
         return me.exec(me.cmd, "sed -i \"s/^domain=''/domain='" + config.envDomain + "'/g\" /opt/letsencrypt/settings");
+    };
+
+    me.removeEnvDomainFromCustom = function removeEnvDomainFromCustom() {
+        isAddedEnvDomain = true;
+        return me.exec(me.cmd, "sed -i \"s/^domain='" + config.envDomain + "'/domain=''/g\" /opt/letsencrypt/settings");
     };
 
     me.getOnlyCustomDomains = function () {
@@ -1308,8 +1323,6 @@ function SSLManager(config) {
             };            
         }
 
-        // html = me.escapeHtmlEntities(String(html));
-        log("resp in sendErrResp ->" + resp);
         return me.sendEmail("Error", "html/update-error.html", {
             SUPPORT_EMAIL : "support@jelastic.com",
             RESP : resp || ""
