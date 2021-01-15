@@ -939,10 +939,9 @@ function SSLManager(config) {
 
         if (resp.result != 0 && config.action == INSTALL) {
             log("in first if");
-            log("me.getOnlyCustomDomains() ->" + me.getOnlyCustomDomains());
-            log("!me.isEnvNameInDomains() ->" + !me.isEnvNameInDomains());
-            if ((!me.getOnlyCustomDomains() && config.fallbackToX1) ||
-                (me.getOnlyCustomDomains() && !me.isEnvNameInDomains())) {
+            log("me.getOnlyCustomDomains2() ->" + me.getOnlyCustomDomains());
+            log("!me.isEnvNameInDomains2() ->" + !me.isEnvNameInDomains());
+            if (!me.getOnlyCustomDomains() && (config.fallbackToX1 || !me.isEnvNameInDomains())) {
                 if (!me.isEnvNameInDomains()) {
                     //setEnv domain to custom domains
                     me.addEnvDomainToCustom();
