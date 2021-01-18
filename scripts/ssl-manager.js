@@ -1305,7 +1305,7 @@ function SSLManager(config) {
     me.sendErrResp = function sendErrResp(resp) {
         resp = resp || {};
 
-        log("in sendErrResp ->" + resp);
+        log("in sendErrResp2 ->" + resp);
         log("in me.escapeHtmlEntities(resp.error) ->" + me.escapeHtmlEntities(resp.error));
         log("me.getSkippedDomains() ->" + me.getSkippedDomains());
         if (!me.getCustomDomains() && me.getSkippedDomains()) {
