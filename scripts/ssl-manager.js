@@ -942,17 +942,11 @@ function SSLManager(config) {
         if (tmpResp.result != 0) return tmpResp;
 
         if (resp.result != 0 && config.action == INSTALL) {
-            log("in first if");
-            log("me.getOnlyCustomDomains2() ->" + me.getOnlyCustomDomains());
-            log("!me.isEnvNameInDomains2() ->" + !me.isEnvNameInDomains());
             if (!me.getOnlyCustomDomains() && (config.fallbackToX1 || !me.isEnvNameInDomains())) {
                 if (!me.isEnvNameInDomains()) {
-                    //setEnv domain to custom domains
-                    //TODO - add flag for unable to generate certs only for custom domains
-                    //TODO - add env domain in custom domains
                     me.addEnvDomainToCustom();
                 }
-                log("in second if");
+
                 resp = me.analyzeSslResponse(
                     me.exec(me.cmd, generateSSLScript + (bUpload ? "" : " --no-upload-certs") + (config.fallbackToX1 ? " fake" : ""))
                 );
@@ -1037,20 +1031,13 @@ function SSLManager(config) {
                 "Error: ": null
             };
 
-            log("resp-> " + resp);
             for (var start in errors) {
-                log("start-> " + start);
                 var end = errors[start];
                 var ind1 = out.indexOf(start);
 
-                log("end-> " + end);
-                log("ind1-> " + ind1);
                 if (ind1 != -1) {
                     var ind2 = end ? out.indexOf(end, ind1) : -1;
-                    log("substr ->");
-                    log("ind2 ->" + ind2);
                     var message = ind2 == -1 ? out.substring(ind1) : out.substring(ind1, ind2); //removed duplicated words in popup
-                    log("message-> " + message);
                     resp = error(Response.ERROR_UNKNOWN, message);
                     break;
                 }
@@ -1256,12 +1243,13 @@ function SSLManager(config) {
             return me.sendErrResp(resp);
         }
 
+        log("me.getCustomDomains()-> " + me.getCustomDomains());
         return me.sendEmail(
             "Successful " + (isUpdate ? "Update" : "Installation"),
             "html/update-success.html", {
                 ENVIRONMENT : config.envDomain,
                 ACTION : action,
-                UPDATED_DOMAINS: "Successfully " + action + " custom domains: <b>" + me.formatUpdatedDomains() + "</b>",
+                UPDATED_DOMAINS: me.getCustomDomains() ? "Successfully " + action + " custom domains: <b>" + me.formatUpdatedDomains() + "</b>" : config.envDomain,
                 SKIPPED_DOMAINS: skippedDomains ? "<br><br>Please note that Let’s Encrypt cannot assign SSL certificates for the following domain names: <b>" + me.formatDomains(skippedDomains) + "</b>.<br>" + "Login to your domain registrar admin panel and check <a href='https://docs.jelastic.com/custom-domains/#how-to-configure-dns-record' target='_blank'>DNS records</a> for the provided domains. Ensure they point to the correct IP (environment entry point or proxy if CDN or any other external balancer is used). Alternatively, remove invalid custom domains from the <a href='https://jelastic.com/blog/free-ssl-certificates-with-lets-encrypt/'>Let's Encrypt settings</a>." : ""
             }
         );
@@ -1305,13 +1293,9 @@ function SSLManager(config) {
     me.sendErrResp = function sendErrResp(resp) {
         resp = resp || {};
 
-        log("in sendErrResp2 ->" + resp);
-        log("in me.escapeHtmlEntities(resp.error) ->" + me.escapeHtmlEntities(resp.error));
-        log("me.getSkippedDomains() ->" + me.getSkippedDomains());
         if (!me.getCustomDomains() && me.getSkippedDomains()) {
-            resp = "Please note that the SSL certificates cannot be assigned to the available custom domains <b>" + me.formatDomains(me.getSkippedDomains()) + "</b> due to incorrect DNS settings.\n\n" +
-                "You can fix the issues with DNS records (IP addresses) via your domain admin panel or by removing invalid custom domains from Let's Encrypt settings.\n\n" +
-                "In case you no longer require SSL certificates within <b>" + config.envDomain + "</b> environment, feel free to delete Let’s Encrypt add-on to stop receiving error messages." + "<br><br><div style='background: rgb(200, 200, 200)'>" + me.escapeHtmlEntities(resp) + "</div>";
+            resp = "<div style='background: rgb(200, 200, 200)'> " + me.escapeHtmlEntities(String(resp)) + "</div><br>Please, ensure that <b>" + me.formatDomains(me.getSkippedDomains()) + "</b> domains listed in the add-on point to the correct public IP (environment entry point or proxy, like CDN) in your domain registrar. Alternatively, remove invalid custom domains from the <a target='_blank' href='https://jelastic.com/blog/free-ssl-certificates-with-lets-encrypt/'>Let's Encrypt</a> settings.<br><br>" +
+                "If you no longer require SSL certificates within the <b>" + config.envDomain + "</b> environment, remove the Let's Encrypt add-on to stop receiving this error message.";
         } else {
             resp = { 
                 result: resp.result || Response.ERROR_UNKNOWN, 
@@ -1322,6 +1306,7 @@ function SSLManager(config) {
 
         return me.sendEmail("Error", "html/update-error.html", {
             SUPPORT_EMAIL : "support@jelastic.com",
+            ENV_DOMAIN: config.envDomain,
             RESP : resp || ""
         });
     };
