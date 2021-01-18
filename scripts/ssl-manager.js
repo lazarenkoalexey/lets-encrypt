@@ -1306,7 +1306,7 @@ function SSLManager(config) {
         resp = resp || {};
 
         log("in sendErrResp ->" + resp);
-        log("in me.escapeHtmlEntities(resp) ->" + me.escapeHtmlEntities(resp));
+        log("in me.escapeHtmlEntities(resp.error) ->" + me.escapeHtmlEntities(resp.error));
         log("me.getSkippedDomains() ->" + me.getSkippedDomains());
         if (!me.getCustomDomains() && me.getSkippedDomains()) {
             resp = "Please note that the SSL certificates cannot be assigned to the available custom domains <b>" + me.formatDomains(me.getSkippedDomains()) + "</b> due to incorrect DNS settings.\n\n" +
