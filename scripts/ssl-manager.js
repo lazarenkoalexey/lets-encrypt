@@ -1249,8 +1249,8 @@ function SSLManager(config) {
             "html/update-success.html", {
                 ENVIRONMENT : config.envDomain,
                 ACTION : action,
-                UPDATED_DOMAINS: me.getCustomDomains() ? "Successfully " + action + " custom domains: <b>" + me.formatUpdatedDomains() + "</b>" : config.envDomain,
-                SKIPPED_DOMAINS: skippedDomains ? "<br><br>Please note that Let’s Encrypt cannot assign SSL certificates for the following domain names: <b>" + me.formatDomains(skippedDomains) + "</b>.<br>" + "Login to your domain registrar admin panel and check <a href='https://docs.jelastic.com/custom-domains/#how-to-configure-dns-record' target='_blank'>DNS records</a> for the provided domains. Ensure they point to the correct IP (environment entry point or proxy if CDN or any other external balancer is used). Alternatively, remove invalid custom domains from the <a href='https://jelastic.com/blog/free-ssl-certificates-with-lets-encrypt/'>Let's Encrypt settings</a>." : ""
+                UPDATED_DOMAINS: me.getCustomDomains() ? "<br>Successfully " + action + " custom domains: <b>" + me.formatUpdatedDomains() + "</b>" : "",
+                SKIPPED_DOMAINS: skippedDomains ? "<br>Please note that Let’s Encrypt cannot assign SSL certificates for the following domain names: <b>" + me.formatDomains(skippedDomains) + "</b>.<br>" + "Login to your domain registrar admin panel and check <a href='https://docs.jelastic.com/custom-domains/#how-to-configure-dns-record' target='_blank'>DNS records</a> for the provided domains. Ensure they point to the correct IP (environment entry point or proxy if CDN or any other external balancer is used). Alternatively, remove invalid custom domains from the <a href='https://jelastic.com/blog/free-ssl-certificates-with-lets-encrypt/'>Let's Encrypt settings</a>." : ""
             }
         );
     };
