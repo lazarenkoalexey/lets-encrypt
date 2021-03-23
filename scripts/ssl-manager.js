@@ -728,7 +728,8 @@ function SSLManager(config) {
     };
 
     me.attachExtIpIfNeed = function (node) {
-        if (!me.isIPv4Exists(node) && !me.isIPv6Exists(node)) {
+        log("before attachExtIpIfNeed");
+        if (!nodeManager.isIPv4Exists(node) && !nodeManager.isIPv6Exists(node)) {
             return me.exec.call(nodeManager, nodeManager.attachExtIp, node.id);
         }
 
