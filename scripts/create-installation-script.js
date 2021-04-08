@@ -45,7 +45,6 @@ function run() {
         email            : "${user.email}"
     });
     
-    jelastic.marketplace.console.WriteLog("${placeholders}");
     
     jelastic.local.ReturnResult(
         SSLManager.createScriptAndInstall()
