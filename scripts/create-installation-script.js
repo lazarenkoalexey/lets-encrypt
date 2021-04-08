@@ -43,6 +43,9 @@ function run() {
         email            : "${user.email}"
     });
     
+    
+    
+    
     log("in initCustomConfigs ${targetNodes.nodeGroup}");
     
     //log("${placeholders}");
