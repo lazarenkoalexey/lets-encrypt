@@ -50,6 +50,7 @@ function run() {
 }
 
 function use(script, config) {
+    jelastic.marketplace.console.WriteLog("config-> " + config);
     var Transport = com.hivext.api.core.utils.Transport,
         body = new Transport().get(baseUrl + "/" + script + "?_r=" + Math.random());
     
