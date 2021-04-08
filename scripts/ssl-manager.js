@@ -534,6 +534,8 @@ function SSLManager(config) {
             propNames,
             propName,
             resp;
+        
+        log("in initCustomConfigs ${targetNodes.nodeGroup}");
 
         resp = me.cmd("[[ -f \"" + CUSTOM_CONFIG + "\" ]] && echo true || echo false", { nodeGroup: config.nodeGroup });
         if (resp.result != 0) return resp;
