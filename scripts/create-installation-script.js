@@ -17,8 +17,6 @@ var baseDir          = getParam("baseDir", "/"),
     fallbackToX1     = getParam("fallbackToX1", ""),
     test             = getParam("test", "");
 
-jelastic.marketplace.console.WriteLog("${targetNodes.nodeGroup}");
-
 function run() {
     var SSLManager = use("scripts/ssl-manager.js", {
         appId            : appId,
