@@ -17,6 +17,8 @@ var baseDir          = getParam("baseDir", "/"),
     fallbackToX1     = getParam("fallbackToX1", ""),
     test             = getParam("test", "");
 
+jelastic.marketplace.console.WriteLog("${targetNodes.nodeGroup}");
+
 function run() {
     var SSLManager = use("scripts/ssl-manager.js", {
         appId            : appId,
@@ -43,10 +45,7 @@ function run() {
         email            : "${user.email}"
     });
     
-    
-    
-    
-    log("in initCustomConfigs ${targetNodes.nodeGroup}");
+    jelastic.marketplace.console.WriteLog("${placeholders}");
     
     jelastic.local.ReturnResult(
         SSLManager.createScriptAndInstall()
