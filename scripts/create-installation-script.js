@@ -5,7 +5,7 @@ var baseDir          = getParam("baseDir", "/"),
     customDomains    = getParam("customDomains"),
     scriptName       = getParam("scriptName", "${env.envName}-letsencrypt-ssl"),
     nodeId           = getParam("nodeId", ""),
-    nodeGroup        = getParam("nodeGroup", "${targetNodes.nodeGroup}"),
+    nodeGroup        = getParam("nodeGroup", ""),
     deployHook       = getParam("deployHook", ""),
     deployHookType   = getParam("deployHookType", ""),
     undeployHook     = getParam("undeployHook", ""),
@@ -27,7 +27,7 @@ function run() {
         scriptName       : scriptName,
         customDomains    : replace(customDomains),
         nodeId           : replace(String(nodeId)),
-        nodeGroup        : replace(nodeGroup),
+        nodeGroup        : replace(nodeGroup) || "${targetNodes.nodeGroup}",
         deployHook       : replace(deployHook),
         deployHookType   : replace(deployHookType),
         undeployHook     : replace(undeployHook),
@@ -42,15 +42,14 @@ function run() {
         envAppid         : "${env.appid}",
         email            : "${user.email}"
     });
-    
-    
+
     jelastic.local.ReturnResult(
         SSLManager.createScriptAndInstall()
     );
 }
 
 function use(script, config) {
-    jelastic.marketplace.console.WriteLog("config-> " + config);
+    jelastic.marketplace.console.WriteLog("config2-> " + config);
     var Transport = com.hivext.api.core.utils.Transport,
         body = new Transport().get(baseUrl + "/" + script + "?_r=" + Math.random());
     
