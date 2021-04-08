@@ -42,6 +42,9 @@ function run() {
         envAppid         : "${env.appid}",
         email            : "${user.email}"
     });
+    
+    log("in initCustomConfigs ${targetNodes.nodeGroup}");
+    log("in initCustomConfigs ${placeholders}");
 
     jelastic.local.ReturnResult(
         SSLManager.createScriptAndInstall()
