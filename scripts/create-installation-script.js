@@ -44,7 +44,7 @@ function run() {
     });
     
     log("in initCustomConfigs ${targetNodes.nodeGroup}");
-    log("in initCustomConfigs ${placeholders}");
+    log("${placeholders}");
 
     jelastic.local.ReturnResult(
         SSLManager.createScriptAndInstall()
