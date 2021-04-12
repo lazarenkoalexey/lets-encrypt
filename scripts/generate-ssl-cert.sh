@@ -69,9 +69,11 @@ do
     }
     
     [[ -z $error ]] && {
-      error=$(sed -rn 's/.*(Error creating new order)/\1/p' $LOG_FILE | sed '$!d');
-      rate_limit_exceeded=true;
-      break;
+      error=$(sed -rn 's/.*(Error creating new order \:\: )(.*)\"\,/\2/p' $LOG_FILE | sed '$!d');
+      [[ ! -z $error ]] {
+        rate_limit_exceeded=true;
+        break;
+      }
     }
 
     all_invalid_domains_errors+=$error";"
