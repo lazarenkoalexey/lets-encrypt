@@ -976,15 +976,14 @@ function SSLManager(config) {
             };
         }
 
-        log("resp -> " + resp);
         if (resp.result == RATE_LIMIT_EXCEEDED) {
-            text = "Too many certificates already issued for exact set of domains. See https://letsencrypt.org/docs/rate-limits/";
+            text = "Error: " + resp.response;
             return {
                 result: RATE_LIMIT_EXCEEDED,
-                error: resp.response,
-                response: resp.response,
+                error: text,
+                response: text,
                 type: "warning",
-                message: resp.response
+                message: text
             };
         }
 
