@@ -67,6 +67,12 @@ do
       error=$(sed -rn 's/.*(Cannot issue for .*)",/\1/p' $LOG_FILE | sed '$!d')
       invalid_domain=$(echo $error | sed -rn 's/Cannot issue for \\\"(.*)\\\":.*/\1/p')
     }
+    
+    [[ -z $error ]] && {
+      error=$(sed -rn 's/.*(Error creating new order)/\1/p' $LOG_FILE | sed '$!d');
+      rate_limit_exceeded=true;
+      break;
+    }
 
     all_invalid_domains_errors+=$error";"
     all_invalid_domains+=$invalid_domain" "
@@ -107,6 +113,7 @@ fi
 [[ $invalid_webroot_dir == true ]] && exit 5; #wrong webroot directory or server is not running
 [[ $timed_out == true ]] && exit 7; #timed out exception
 [[ $result_code != "0" ]] && { echo "$all_invalid_domains_errors"; exit 1; } #general result error
+[[ $rate_limit_exceeded == true ]] && { exit 2; } #too many certificates already issued
 
 #To be sure that r/w access
 mkdir -p /tmp/
