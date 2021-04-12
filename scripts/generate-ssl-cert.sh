@@ -70,7 +70,7 @@ do
     
     [[ -z $error ]] && {
       error=$(sed -rn 's/.*(Error creating new order \:\: )(.*)\"\,/\2/p' $LOG_FILE | sed '$!d');
-      [[ ! -z $error ]] {
+      [[ ! -z $error ]] && {
         rate_limit_exceeded=true;
         break;
       }
