@@ -36,6 +36,7 @@ function SSLManager(config) {
         StrSubstitutor = org.apache.commons.lang3.text.StrSubstitutor,
         ENVIRONMENT_EXT_DOMAIN_IS_BUSY = 2330,
         WRONG_DNS_CUSTOM_DOMAINS = 1,
+        RATE_LIMIT_EXCEEDED = 2,
         ANCIENT_VERSION_OF_PYTHON = 4,
         INVALID_WEBROOT_DIR = 5,
         UPLOADER_ERROR = 6,
@@ -118,10 +119,14 @@ function SSLManager(config) {
             [ me.initEntryPoint ],
             [ me.initCustomConfigs ],
             [ me.installLetsEncrypt ],
-            [ me.generateSslConfig, isUpdate ],
+            [ me.generateSslConfig ],
             [ me.validateEntryPoint ],
-            [ me.generateSslCerts ]
+            [ me.generateSslCerts, isUpdate ]
         ]);
+
+        if (isUpdate && resp.result == 0) {
+            config.updateCounter = 0;
+        }
 
         if (resp.result == 0) {
             me.exec(me.scheduleAutoUpdate);
@@ -971,6 +976,18 @@ function SSLManager(config) {
             };
         }
 
+        log("resp -> " + resp);
+        if (resp.result == RATE_LIMIT_EXCEEDED) {
+            text = "Too many certificates already issued for exact set of domains. See https://letsencrypt.org/docs/rate-limits/";
+            return {
+                result: RATE_LIMIT_EXCEEDED,
+                error: resp.response,
+                response: resp.response,
+                type: "warning",
+                message: resp.response
+            };
+        }
+
         if (resp.result && resp.result == INVALID_WEBROOT_DIR) {
             text = "webroot_path does not exist or is not a directory";
             return {
@@ -1043,6 +1060,7 @@ function SSLManager(config) {
                 if (resp.exitStatus == INVALID_WEBROOT_DIR) return { result: INVALID_WEBROOT_DIR}
                 if (resp.exitStatus == UPLOADER_ERROR) return { result: UPLOADER_ERROR}
                 if (resp.exitStatus == READ_TIMED_OUT) return { result: READ_TIMED_OUT}
+                if (resp.exitStatus == RATE_LIMIT_EXCEEDED) return { result: RATE_LIMIT_EXCEEDED, response: resp.out }
             }
 
             //just cutting "out" for debug logging because it's too long in SSL generation output
