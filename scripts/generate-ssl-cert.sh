@@ -114,8 +114,8 @@ fi
 [[ $need_regenerate == true ]] && exit 4; #reinstall packages, regenerate certs
 [[ $invalid_webroot_dir == true ]] && exit 5; #wrong webroot directory or server is not running
 [[ $timed_out == true ]] && exit 7; #timed out exception
-[[ $result_code != "0" ]] && { echo "$all_invalid_domains_errors"; exit 1; } #general result error
 [[ $rate_limit_exceeded == true ]] && { echo "$error"; exit 2; } #too many certificates already issued
+[[ $result_code != "0" ]] && { echo "$all_invalid_domains_errors"; exit 1; } #general result error
 
 #To be sure that r/w access
 mkdir -p /tmp/
