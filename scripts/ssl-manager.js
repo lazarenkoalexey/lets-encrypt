@@ -7,7 +7,7 @@ function SSLManager(config) {
      *      envDomain : {String}
      *      envAppid : {String}
      *      baseUrl : {String}
-     *      baseDir : {String}     
+     *      baseDir : {String}
      *      scriptName : {String}
      *      cronTime : {String}
      *      email : {String}
@@ -41,6 +41,7 @@ function SSLManager(config) {
         INVALID_WEBROOT_DIR = 5,
         UPLOADER_ERROR = 6,
         READ_TIMED_OUT = 7,
+        RATE_LIMIT_AUTH_EXCEEDED = 12003,
         VALIDATION_SCRIPT = "validation.sh",
         Random = com.hivext.api.utils.Random,
         LIGHT = "LIGHT",
@@ -100,9 +101,9 @@ function SSLManager(config) {
                 error : "unknown action [" + action + "]"
             }
         }
-        
+
         me.init();
-        
+
         return actions[action].call(me);
     };
 
@@ -892,6 +893,16 @@ function SSLManager(config) {
         });
     };
 
+    me.defineShellCodes = function() {
+        SHELL_CODES[WRONG_DNS_CUSTOM_DOMAINS] = 21;
+        SHELL_CODES[RATE_LIMIT_EXCEEDED] = 22;
+        SHELL_CODES[RATE_LIMIT_AUTH_EXCEEDED] = 23;
+        SHELL_CODES[ANCIENT_VERSION_OF_PYTHON] = 24;
+        SHELL_CODES[INVALID_WEBROOT_DIR] = 25;
+        SHELL_CODES[UPLOADER_ERROR] = 26;
+        SHELL_CODES[READ_TIMED_OUT] = 27;
+    };
+
     me.generateSslCerts = function generateSslCerts() {
         var fileName = "generate-ssl-cert.sh",
             url = me.getScriptUrl(fileName),
@@ -971,7 +982,7 @@ function SSLManager(config) {
                 message: message + incorrectDNSText
             };
         }
-        
+
         if (resp.result == RATE_LIMIT_EXCEEDED) {
             text = "Error: " + resp.response;
             return {
@@ -1004,7 +1015,7 @@ function SSLManager(config) {
                 message: text
             };
         }
-        
+
         if (resp.result && resp.result == READ_TIMED_OUT) {
             text = "The Let's Encrypt service is currently unavailable. Check the /var/log/letsencrypt log for more details or try again in a few minutes.";
             return {
@@ -1018,7 +1029,7 @@ function SSLManager(config) {
 
         return resp;
     };
-    
+
     me.getOnlyCustomDomains = function () {
         var regex = new RegExp("\\s*" + config.envDomain + "\\s*");
         return String(java.lang.String(config.customDomains.replace(regex, " ")).trim());
@@ -1056,6 +1067,7 @@ function SSLManager(config) {
                 if (resp.exitStatus == UPLOADER_ERROR) return { result: UPLOADER_ERROR}
                 if (resp.exitStatus == READ_TIMED_OUT) return { result: READ_TIMED_OUT}
                 if (resp.exitStatus == RATE_LIMIT_EXCEEDED) return { result: RATE_LIMIT_EXCEEDED, response: resp.out }
+                if (resp.exitStatus == SHELL_CODES[RATE_LIMIT_AUTH_EXCEEDED]) return { result: RATE_LIMIT_AUTH_EXCEEDED, response: resp.out }
             }
 
             //just cutting "out" for debug logging because it's too long in SSL generation output
@@ -1336,10 +1348,10 @@ function SSLManager(config) {
                 "In case you no longer require SSL certificates within <b>" + config.envDomain + "</b> environment, feel free to delete Let’s Encrypt add-on to stop receiving error messages.";
         } else {
             resp = {
-                result: resp.result || Response.ERROR_UNKNOWN, 
+                result: resp.result || Response.ERROR_UNKNOWN,
                 error: resp.error || "unknown error",
                 debug: debug
-            };            
+            };
         }
 
         return me.sendEmail("Error", "html/update-error.html", {
@@ -1481,15 +1493,15 @@ function SSLManager(config) {
         me.setValidationScriptUrl = function(url) {
             sValidationUrl = url;
         };
-        
+
         me.getValidationScriptUrl = function() {
             return sValidationUrl;
         };
-        
+
         me.setValidationPath = function(scriptName) {
             sValidationPath = me.getScriptPath(scriptName);
         };
-        
+
         me.getValidationPath = function() {
             return sValidationPath;
         };
@@ -1531,7 +1543,7 @@ function SSLManager(config) {
         me.isBalancerLayer = function (group) {
             return !!(group == LB || group == BL);
         };
-        
+
         me.isComputeLayer = function (group) {
             return !!(group == CP);
         };
@@ -1592,11 +1604,11 @@ function SSLManager(config) {
 
             return { result : 0, node : node };
         };
-        
+
         me.isIPv6Exists = function isIPv6Exists(node) {
             return !!(node.extipsv6 && node.extipsv6.length);
-        }; 
-        
+        };
+
         me.isNodeExists = function isNodeExists(group) {
             var resp,
                 nodes,
@@ -1625,7 +1637,7 @@ function SSLManager(config) {
 
             return envInfo;
         };
-        
+
         me.updateEnvInfo = function updateEnvInfo() {
             return me.getEnvInfo(true);
         };
