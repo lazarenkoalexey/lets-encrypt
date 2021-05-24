@@ -42,6 +42,8 @@ function SSLManager(config) {
         UPLOADER_ERROR = 6,
         READ_TIMED_OUT = 7,
         VALIDATION_SCRIPT = "validation.sh",
+        AUTO_UPDATE = "auto-update",
+        LE_ADDON_IDENTIFIER = "letsencrypt-ssl-addon",
         Random = com.hivext.api.utils.Random,
         LIGHT = "LIGHT",
         me = this,
@@ -362,8 +364,8 @@ function SSLManager(config) {
         if (getPlatformVersion() < "4.9.5") {
             return me.exec(me.sendEmail, "Action Required", "html/update-required.html");
         }
-
-        return jelastic.marketplace.console.WriteLog(appid, session, "testing");
+        
+        log("config.isTask->" + config.isTask);
         if (!config.isTask) {
             me.logAction("StartUpdateLEFromContainer");
 
@@ -383,6 +385,29 @@ function SSLManager(config) {
                 return me.checkEnvAccessAndUpdate(resp);
             }
         }
+
+        //check new script
+        config.scriptNameAutoUpdate = config.scriptName + "-" + AUTO_UPDATE;
+        var appAction = getParam("appAction"),
+            appUniqueName = nodeManager.getAppUniqueName();
+
+        log("appUniqueName-> " + appUniqueName);
+        log("resp config.scriptNameAutoUpdate-> " + config.scriptNameAutoUpdate);
+        log("appAction-> " + appAction);
+        resp = getScript(config.scriptNameAutoUpdate);
+
+        log("resp getScript-> " + resp);
+        if (resp.result == Response.SCRIPT_NOT_FOUND) {
+            resp = me.exec(me.createScript, "install-ssl-auto-update.js", config.scriptNameAutoUpdate);
+            log("resp createScript-> " + resp);
+        }
+        if (!appAction) {
+            return me.exec([ me.evalScript, {
+                script: config.scriptNameAutoUpdate,
+                appUniqueName: appUniqueName
+            } ]);
+        }
+        //if flag (appAction) is absent then execute new script
 
         if (config.patchVersion == patchBuild) {
             resp = me.install(true);
@@ -458,7 +483,7 @@ function SSLManager(config) {
             [ me.initEntryPoint ],
             [ me.validateEntryPoint ],
             [ me.createScript ],
-            [ me.evalScript, "install" ]
+            [ me.evalScript, { action: "install" } ]
         ]);
     };
 
@@ -793,9 +818,9 @@ function SSLManager(config) {
         return resp;
     };
 
-    me.createScript = function createScript() {
-        var url = me.getScriptUrl("install-ssl.js"),
-            scriptName = config.scriptName,
+    me.createScript = function createScript(jsFile, scriptName) {
+        var url = me.getScriptUrl(jsFile || "install-ssl.js"),
+            scriptName = scriptName || config.scriptName,
             scriptBody,
             resp;
 
@@ -824,13 +849,15 @@ function SSLManager(config) {
         return resp;
     };
 
-    me.evalScript = function evalScript(action) {
-        var params = { token : config.token };
+    me.evalScript = function evalScript(params) {
+        var params = params || {},
+            script;
 
-        if (action) params.action = action;
+        script = params.script || config.scriptName;
+        params.token = config.token;
         params.fallbackToX1 = config.fallbackToX1;
 
-        var resp = jelastic.dev.scripting.Eval(config.scriptName, params);
+        var resp = jelastic.dev.scripting.Eval(script, params);
 
         if (resp.result == 0 && typeof resp.response === "object" && resp.response.result != 0) {
             resp = resp.response;
@@ -1317,7 +1344,7 @@ function SSLManager(config) {
 
         resp = jelastic.dev.scripting.Eval("appstore", session, "GetApps", {
             targetAppid: config.envAppid,
-            search: {"appstore":"1","app_id":"letsencrypt-ssl-addon", "nodeGroup": {"!=":config.nodeGroup}}
+            search: {"appstore":"1","app_id": LE_ADDON_IDENTIFIER, "nodeGroup": {"!=":config.nodeGroup}}
         });
 
         me.logAction("isMoreLEAppInstalled", resp);
@@ -1631,6 +1658,33 @@ function SSLManager(config) {
         
         me.updateEnvInfo = function updateEnvInfo() {
             return me.getEnvInfo(true);
+        };
+
+        me.getAppUniqueName = function() {
+            var envinfo = me.getEnvInfo(),
+                uniqueName,
+                addons,
+                node;
+
+            for (var i = 0, n = envinfo.nodes.length; i < n; i++) {
+                node = envinfo.nodes[i];
+                if (node.nodeGroup == config.nodeGroup) {
+                    addons = node.addons;
+                    break;
+                }
+            }
+            log("addons ->" + addons);
+            if (addons) {
+                for (i = 0, n = addons.length; i < n; i++) {
+                    if (addons[i].appTemplateId == LE_ADDON_IDENTIFIER) {
+                        uniqueName = addons[i].uniqueName;
+                        break;
+                    }
+                }
+            }
+            log("uniqueName ->" + uniqueName);
+
+            return uniqueName || "";
         };
 
         me.getEntryPointGroup = function () {
