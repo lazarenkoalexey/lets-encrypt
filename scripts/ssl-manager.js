@@ -363,7 +363,7 @@ function SSLManager(config) {
             return me.exec(me.sendEmail, "Action Required", "html/update-required.html");
         }
 
-        log("testing");
+        return jelastic.marketplace.console.WriteLog(appid, session, "testing");
         if (!config.isTask) {
             me.logAction("StartUpdateLEFromContainer");
 
