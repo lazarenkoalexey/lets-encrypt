@@ -363,6 +363,7 @@ function SSLManager(config) {
             return me.exec(me.sendEmail, "Action Required", "html/update-required.html");
         }
 
+        log("testing");
         if (!config.isTask) {
             me.logAction("StartUpdateLEFromContainer");
 
@@ -372,9 +373,11 @@ function SSLManager(config) {
 
             resp = nodeManager.getEnvInfo();
 
+            log("resp->" + resp);
             if (resp.result == 0) {
                 resp = log("checkPermissions");
             }
+            log("resp->" + resp);
 
             if (resp && resp.result != 0) {
                 return me.checkEnvAccessAndUpdate(resp);
