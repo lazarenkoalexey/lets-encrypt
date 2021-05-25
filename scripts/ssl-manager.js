@@ -364,7 +364,7 @@ function SSLManager(config) {
         if (getPlatformVersion() < "4.9.5") {
             return me.exec(me.sendEmail, "Action Required", "html/update-required.html");
         }
-        
+
         log("config.isTask->" + config.isTask);
         if (!config.isTask) {
             me.logAction("StartUpdateLEFromContainer");
@@ -401,16 +401,13 @@ function SSLManager(config) {
             resp = me.exec(me.createScript, "install-ssl-auto-update.js", config.scriptNameAutoUpdate);
             log("resp createScript-> " + resp);
         }
-        if (!appAction) {
-            return me.exec([ me.evalScript, {
+
+        if (config.patchVersion == patchBuild) {
+            resp = me.exec([ me.evalScript, {
                 script: config.scriptNameAutoUpdate,
                 appUniqueName: appUniqueName
             } ]);
-        }
-        //if flag (appAction) is absent then execute new script
-
-        if (config.patchVersion == patchBuild) {
-            resp = me.install(true);
+            // resp = me.install(true);
         } else {
             resp = me.reinstall();
         }
