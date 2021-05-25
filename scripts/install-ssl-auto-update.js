@@ -1,6 +1,6 @@
 //@url('/${scriptNameAutoUpdate}')
 
-return jelastic.marketplace.jps.ExecuteAppAction(appid, session, geParam("appUniqueName"), "auto-update", null, {
+return jelastic.marketplace.jps.ExecuteAppAction(appid, session, getParam("appUniqueName"), "auto-update", null, {
     appAction: "auto-update",
     action: "update"
 });
