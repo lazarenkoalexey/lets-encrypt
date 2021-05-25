@@ -365,7 +365,6 @@ function SSLManager(config) {
             return me.exec(me.sendEmail, "Action Required", "html/update-required.html");
         }
 
-        log("config.isTask->" + config.isTask);
         if (!config.isTask) {
             me.logAction("StartUpdateLEFromContainer");
 
@@ -375,38 +374,27 @@ function SSLManager(config) {
 
             resp = nodeManager.getEnvInfo();
 
-            log("resp->" + resp);
             if (resp.result == 0) {
                 resp = log("checkPermissions");
             }
-            log("resp->" + resp);
 
             if (resp && resp.result != 0) {
                 return me.checkEnvAccessAndUpdate(resp);
             }
         }
 
-        //check new script
-        config.scriptNameAutoUpdate = config.scriptName + "-" + AUTO_UPDATE;
-        var appAction = getParam("appAction"),
-            appUniqueName = nodeManager.getAppUniqueName();
-
-        log("appUniqueName-> " + appUniqueName);
-        log("resp config.scriptNameAutoUpdate-> " + config.scriptNameAutoUpdate);
-        log("appAction-> " + appAction);
-        resp = getScript(config.scriptNameAutoUpdate);
-
-        log("resp getScript-> " + resp);
-        if (resp.result == Response.SCRIPT_NOT_FOUND) {
-            resp = me.exec(me.createScript, "install-ssl-auto-update.js", config.scriptNameAutoUpdate);
-            log("resp createScript-> " + resp);
-        }
-
         if (config.patchVersion == patchBuild) {
-            if (!appAction) {
-                resp = me.exec(me.evalScript, {
+            if (config.isTask) {
+                config.scriptNameAutoUpdate = config.scriptName + "-" + AUTO_UPDATE;
+                resp = getScript(config.scriptNameAutoUpdate);
+
+                if (resp.result == Response.SCRIPT_NOT_FOUND) {
+                    resp = me.exec(me.createScript, "install-ssl-auto-update.js", config.scriptNameAutoUpdate);
+                    if (resp.result != 0) return resp;
+                }
+                return me.exec(me.evalScript, {
                     script: config.scriptNameAutoUpdate,
-                    appUniqueName: appUniqueName
+                    appUniqueName: nodeManager.getAppUniqueName()
                 });
             } else {
                 resp = me.install(true);
@@ -414,6 +402,7 @@ function SSLManager(config) {
         } else {
             resp = me.reinstall();
         }
+
         log("resp after config.patchVersion == patchBuild -> " + resp);
 
         me.logAction("EndUpdateLEFromContainer", resp);
@@ -1136,7 +1125,7 @@ function SSLManager(config) {
             "https://%(host)/%(scriptName)?appid=%(appid)&token=%(token)&action=auto-update",
             {
                 host : window.location.host,
-                scriptName : config.scriptName,
+                scriptName : config.scriptName + "-" + AUTO_UPDATE,
                 appid : appid,
                 token : config.token
             }
@@ -1457,6 +1446,7 @@ function SSLManager(config) {
             sValidationPath,
             sValidationUrl,
             oBackupScript,
+            sAppUniqueName,
             oBLMaster,
             sBackupPath,
             envInfo,
@@ -1663,29 +1653,29 @@ function SSLManager(config) {
 
         me.getAppUniqueName = function() {
             var envinfo = me.getEnvInfo(),
-                uniqueName,
                 addons,
                 node;
 
-            for (var i = 0, n = envinfo.nodes.length; i < n; i++) {
-                node = envinfo.nodes[i];
-                if (node.nodeGroup == config.nodeGroup) {
-                    addons = node.addons;
-                    break;
-                }
-            }
-            log("addons ->" + addons);
-            if (addons) {
-                for (i = 0, n = addons.length; i < n; i++) {
-                    if (addons[i].appTemplateId == LE_ADDON_IDENTIFIER) {
-                        uniqueName = addons[i].uniqueName;
+            if (!sAppUniqueName) {
+                for (var i = 0, n = envinfo.nodes.length; i < n; i++) {
+                    node = envinfo.nodes[i];
+                    if (node.nodeGroup == config.nodeGroup) {
+                        addons = node.addons;
                         break;
                     }
                 }
-            }
-            log("uniqueName ->" + uniqueName);
 
-            return uniqueName || "";
+                if (addons) {
+                    for (i = 0, n = addons.length; i < n; i++) {
+                        if (addons[i].appTemplateId == LE_ADDON_IDENTIFIER) {
+                            sAppUniqueName = addons[i].uniqueName;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return sAppUniqueName || "";
         };
 
         me.getEntryPointGroup = function () {
