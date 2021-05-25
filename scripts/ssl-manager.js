@@ -1125,7 +1125,7 @@ function SSLManager(config) {
             "https://%(host)/%(scriptName)?appid=%(appid)&token=%(token)&action=auto-update",
             {
                 host : window.location.host,
-                scriptName : config.scriptName + "-" + AUTO_UPDATE,
+                scriptName : config.scriptName,
                 appid : appid,
                 token : config.token
             }
