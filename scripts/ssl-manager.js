@@ -403,14 +403,18 @@ function SSLManager(config) {
         }
 
         if (config.patchVersion == patchBuild) {
-            resp = me.exec([ me.evalScript, {
-                script: config.scriptNameAutoUpdate,
-                appUniqueName: appUniqueName
-            } ]);
-            // resp = me.install(true);
+            if (!appAction) {
+                resp = me.exec(me.evalScript, {
+                    script: config.scriptNameAutoUpdate,
+                    appUniqueName: appUniqueName
+                });
+            } else {
+                resp = me.install(true);
+            }
         } else {
             resp = me.reinstall();
         }
+        log("resp after config.patchVersion == patchBuild -> " + resp);
 
         me.logAction("EndUpdateLEFromContainer", resp);
 
