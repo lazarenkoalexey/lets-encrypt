@@ -535,7 +535,6 @@ function SSLManager(config) {
             propName,
             resp;
 
-        log("config->" + config);
         resp = me.cmd("[[ -f \"" + CUSTOM_CONFIG + "\" ]] && echo true || echo false", { nodeGroup: config.nodeGroup });
         if (resp.result != 0) return resp;
 
@@ -552,7 +551,6 @@ function SSLManager(config) {
                 config[propName] = config[propName] || String(properties.getProperty(propName));
             }
         }
-        log("config->" + config);
 
         return { result: 0 };
     };
@@ -578,16 +576,9 @@ function SSLManager(config) {
     };
 
     me.initWebrootMethod = function initWebrootMethod(webroot) {
-        log("config.webroot ->" + config.webroot);
-        log("webroot0 ->" + webroot);
         webroot = webroot || config.webroot;
-        log("config.webroot00 ->" + config.webroot);
-        log("webroot00 ->" + webroot);
         webroot = isDefined(webroot) ? String(webroot) == "true" : false;
-        log("webroot ->" + webroot);
         config.webroot = me.initBoolValue(webroot);
-        log("me.initBoolValue(webroot)->" + me.initBoolValue(webroot));
-        log("config.webroot ->" + config.webroot);
         return { result: 0 };
     };
 
@@ -680,29 +671,24 @@ function SSLManager(config) {
             if (resp.result != 0) return resp;
 
             group = resp.group;
-            log("config.nodeGroup->" + config.nodeGroup);
             config.nodeGroup = group;
         }
-        log("config2->" + config);
 
         me.initAddOnExtIp(config.withExtIp);
 
         if (config.webroot && group == BL) {
             if (nodeManager.isNodeExists(CP)) group = CP;
         }
-        log("group->" + group);
 
         resp = nodeManager.getEnvInfo();
         if (resp.result != 0) return resp;
         nodes = resp.nodes;
 
         for (var j = 0, node; node = nodes[j]; j++) {
-            log("node->" + node);
             if (node.nodeGroup != group) continue;
             blMasterNode = nodeManager.getBalancerMasterNode();
 
             if (config.withExtIp && !nodeManager.isIPv6Exists(node)) {
-                log("in if->");
                 resp = config.webroot && !nodeManager.isExtraLayer(node.nodeGroup) ? me.attachExtIpToGroupNodes(blMasterNode ? BL : node.nodeGroup) : me.attachExtIpIfNeed(node);
                 if (resp.result != 0) return resp;
                 nodeManager.updateEnvInfo();
