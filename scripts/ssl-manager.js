@@ -538,7 +538,6 @@ function SSLManager(config) {
         resp = me.cmd("[[ -f \"" + CUSTOM_CONFIG + "\" ]] && echo true || echo false", { nodeGroup: config.nodeGroup });
         if (resp.result != 0) return resp;
 
-        log("config->" + config);
         if (resp.responses[0].out == "true") {
             resp = nodeManager.readFile(CUSTOM_CONFIG, config.nodeGroup);
             if (resp.result != 0) return resp;
@@ -552,7 +551,6 @@ function SSLManager(config) {
                 config[propName] = config[propName] || String(properties.getProperty(propName));
             }
         }
-        log("config->" + config);
 
         return { result: 0 };
     };
@@ -672,6 +670,7 @@ function SSLManager(config) {
             if (resp.result != 0) return resp;
 
             group = resp.group;
+            log("config.nodeGroup->" + config.nodeGroup);
             config.nodeGroup = group;
         }
 
@@ -680,16 +679,19 @@ function SSLManager(config) {
         if (config.webroot && group == BL) {
             if (nodeManager.isNodeExists(CP)) group = CP;
         }
+        log("group->" + group);
 
         resp = nodeManager.getEnvInfo();
         if (resp.result != 0) return resp;
         nodes = resp.nodes;
 
         for (var j = 0, node; node = nodes[j]; j++) {
+            log("node->" + node);
             if (node.nodeGroup != group) continue;
             blMasterNode = nodeManager.getBalancerMasterNode();
 
             if (config.withExtIp && !nodeManager.isIPv6Exists(node)) {
+                log("in if->");
                 resp = config.webroot && !nodeManager.isExtraLayer(node.nodeGroup) ? me.attachExtIpToGroupNodes(blMasterNode ? BL : node.nodeGroup) : me.attachExtIpIfNeed(node);
                 if (resp.result != 0) return resp;
                 nodeManager.updateEnvInfo();
