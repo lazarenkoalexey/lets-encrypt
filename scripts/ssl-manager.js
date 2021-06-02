@@ -675,6 +675,7 @@ function SSLManager(config) {
             log("config.nodeGroup->" + config.nodeGroup);
             config.nodeGroup = group;
         }
+        log("config2->" + config);
 
         me.initAddOnExtIp(config.withExtIp);
 
