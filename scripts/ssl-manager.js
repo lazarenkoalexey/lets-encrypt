@@ -534,6 +534,7 @@ function SSLManager(config) {
             propNames,
             propName,
             resp;
+        log("config -> " + config);
 
         resp = me.cmd("[[ -f \"" + CUSTOM_CONFIG + "\" ]] && echo true || echo false", { nodeGroup: config.nodeGroup });
         if (resp.result != 0) return resp;
@@ -551,6 +552,7 @@ function SSLManager(config) {
                 config[propName] = config[propName] || String(properties.getProperty(propName));
             }
         }
+        log("config -> " + config);
 
         return { result: 0 };
     };
