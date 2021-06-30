@@ -34,10 +34,23 @@ function SSLManager(config) {
     var Response = com.hivext.api.Response,
         Transport = com.hivext.api.core.utils.Transport,
         StrSubstitutor = org.apache.commons.lang3.text.StrSubstitutor,
+        SimpleDateFormat = java.text.SimpleDateFormat,
         ENVIRONMENT_EXT_DOMAIN_IS_BUSY = 2330,
-        ANCIENT_VERSION_OF_PYTHON = 4,
-        INVALID_WEBROOT_DIR = 5,
+        WRONG_DNS_CUSTOM_DOMAINS = 12001,
+        RATE_LIMIT_EXCEEDED = 12002,
+        INVALID_WEBROOT_DIR = 12005,
+        UPLOADER_ERROR = 12006,
+        READ_TIMED_OUT = 12007,
         VALIDATION_SCRIPT = "validation.sh",
+        SHELL_CODES = {},
+        INSTALL_LE_SCRIPT = "install-le.sh",
+        AUTO_UPDATE_SCRIPT = "auto-update-ssl-cert.sh",
+        SETTINGS_PATH = "opt/letsencrypt/settings",
+        DECREASE_UPDATE_DAYS = 10,
+        REMOVE_UPDATE_DAYS = 90,
+        SUPPORT_EMAIL = "support@jelastic.com",
+        DATE_FORMAT = "yyyy-MM-dd HH:mm:ss",
+        CONFIGURE = "configure",
         Random = com.hivext.api.utils.Random,
         isAddedEnvDomain = false,
         INSTALL = "install",
@@ -111,16 +124,15 @@ function SSLManager(config) {
 
     me.install = function (isUpdate) {
         var resp = me.exec([
+            [ me.initCustomConfigs ],
             [ me.initAddOnExtIp, config.withExtIp ],
             [ me.initWebrootMethod, config.webroot ],
             [ me.initFalbackToFake, config.fallbackToX1 ],
             [ me.initEntryPoint ],
-            [ me.initCustomConfigs ],
             [ me.installLetsEncrypt ],
-            [ me.generateSslConfig ],
+            [ me.generateSslConfig, isUpdate ],
             [ me.validateEntryPoint ],
-            [ me.generateSslCerts ],
-            [ me.updateGeneratedCustomDomains ]
+            [ me.generateSslCerts ]
         ]);
 
         if (resp.result == 0) {
@@ -133,6 +145,53 @@ function SSLManager(config) {
 
         return resp;
     };
+
+    me.parseDate = function(date) {
+        return new Date(new SimpleDateFormat(DATE_FORMAT).parse(date));
+    };
+
+    me.checkUpdateExpiration = function checkUpdateExpiration() {
+        var LE_TEXT = "Let's Encrypt Auto-Update",
+            EMAIL_BODY_PATH = "html/update-expired.html",
+            UPDATE_DECREASED = "updateDecreased",
+            UPDATE_DISABLED = "updateDisabled",
+            sslExpiredTime;
+
+        sslExpiredTime = me.parseDate(nodeManager.jemSslCheckdomain());
+
+        if (!config[UPDATE_DISABLED] && me.isDateExpired(sslExpiredTime, REMOVE_UPDATE_DAYS)) {
+            me.disableAutoUpdate();
+            me.updateSettingsValue(UPDATE_DISABLED, true);
+
+            return me.sendEmail("Disable " + LE_TEXT, EMAIL_BODY_PATH, {
+                SUPPORT_EMAIL : SUPPORT_EMAIL,
+                DAYS: String(REMOVE_UPDATE_DAYS),
+                ACTION: "Auto-update retries were disabled."
+            });
+        }
+
+        if (!config[UPDATE_DECREASED] && me.isDateExpired(sslExpiredTime, DECREASE_UPDATE_DAYS)) {
+            me.exec([
+                [ me.scheduleAutoUpdate, "0 0 " + Math.floor(Math.random() * (16 -8) + 8) + " * *" ],
+                [ me.updateSettingsValue, UPDATE_DECREASED, true ]
+            ]);
+
+            return me.sendEmail("Decrease " + LE_TEXT, EMAIL_BODY_PATH, {
+                SUPPORT_EMAIL : SUPPORT_EMAIL,
+                DAYS: String(DECREASE_UPDATE_DAYS),
+                ACTION: "The frequency of auto-update retries was decreased to once per month."
+            });
+        }
+
+        return { result: 0 }
+    };
+
+    me.isDateExpired = function(date, days) {
+        var currentDate = new Date().getTime(),
+            dayStamp = parseInt(days) * 24 * 60 * 60;
+
+        return !!((currentDate - date.getTime()) > dayStamp);
+    }
 
     me.checkSkippedDomainsInSuccess = function checkSkippedDomainsInSuccess(resp) {
         var skippedDomains = me.getSkippedDomains();
@@ -172,15 +231,31 @@ function SSLManager(config) {
         //log("ActionLog: " + oResp);
     };
 
+    me.updateSettingsValue = function updateSettingsValue(key, value) {
+        var resp;
+
+        resp = nodeManager.cmd([
+            "variable=$(grep -E '^%(KEY)=(.*)' %(SETTINGS_PATH)  | cut -d: -f2)",
+            "[[ -z $variable ]] && { echo \"\n%(KEY)='%(VALUE)'\" >> %(SETTINGS_PATH); } || { sed -i \"s/%(KEY)=.*/%(KEY)='%(VALUE)'/g\" %(SETTINGS_PATH); }"
+        ], {
+            SETTINGS_PATH : nodeManager.getPath(SETTINGS_PATH),
+            VALUE: value,
+            KEY: key
+        }, "", true);
+        if (resp.result !=0) return resp;
+        config[key] = value;
+
+        return resp;
+    };
+
     me.updateGeneratedCustomDomains = function () {
-        var setting = "opt/letsencrypt/settings",
-            resp;
+        var resp;
 
         resp = nodeManager.cmd([
             "grep -E '^domain=' %(setting) | cut -c 8-",
             "grep -E 'skipped_domains=' %(setting) | cut -c 17-"
         ], {
-            setting : nodeManager.getPath(setting)
+            setting : nodeManager.getPath(SETTINGS_PATH)
         });
 
         if (resp.result != 0) return resp;
@@ -242,7 +317,7 @@ function SSLManager(config) {
     };
 
     me.uninstall = function () {
-        var autoUpdateScript = nodeManager.getScriptPath("auto-update-ssl-cert.sh");
+        var autoUpdateScript = nodeManager.getScriptPath(AUTO_UPDATE_SCRIPT);
 
         return me.execAll([
             [ me.cmd, "crontab -l 2>/dev/null | grep -v '%(scriptPath)' | crontab -", {
@@ -258,7 +333,7 @@ function SSLManager(config) {
                     nodeManager.getPath("opt/letsencrypt"),
                     nodeManager.getScriptPath("generate-ssl-cert.sh"),
                     nodeManager.getScriptPath("letsencrypt_settings"),
-                    nodeManager.getScriptPath("install-le.sh"),
+                    nodeManager.getScriptPath(INSTALL_LE_SCRIPT),
                     nodeManager.getScriptPath(VALIDATION_SCRIPT),
                     autoUpdateScript
                 ].join(" ")
@@ -301,8 +376,8 @@ function SSLManager(config) {
             [ me.cmd, "\\cp -r {%(scriptToBackup)} %(backupPath)", {
                 backupPath: backupPath,
                 scriptToBackup: [
-                    nodeManager.getScriptPath("auto-update-ssl-cert.sh"),
-                    nodeManager.getScriptPath("install-le.sh"),
+                    nodeManager.getScriptPath(AUTO_UPDATE_SCRIPT),
+                    nodeManager.getScriptPath(INSTALL_LE_SCRIPT),
                     nodeManager.getScriptPath(VALIDATION_SCRIPT)
                 ].join(",")
             }]
@@ -328,8 +403,8 @@ function SSLManager(config) {
                 backupPath: backupPath,
                 rootPath: nodeManager.getPath("root"),
                 files: [
-                    "auto-update-ssl-cert.sh",
-                    "install-le.sh",
+                    AUTO_UPDATE_SCRIPT,
+                    INSTALL_LE_SCRIPT,
                     VALIDATION_SCRIPT
                 ].join(",")
             }]
@@ -345,7 +420,7 @@ function SSLManager(config) {
     };
 
     me.checkForUpdate = function checkForUpdate() {
-        var fileName = "auto-update-ssl-cert.sh";
+        var fileName = AUTO_UPDATE_SCRIPT;
 
         me.logAction("CheckForUpdateLE");
 
@@ -389,6 +464,14 @@ function SSLManager(config) {
         me.logAction("EndUpdateLEFromContainer", resp);
 
         return resp;
+    };
+
+    me.setAddOnAction = function(action) {
+        config.action = action;
+    };
+
+    me.getAddOnAction = function() {
+        return config.action || "";
     };
 
     me.restoreCSScript = function restoreCSScript() {
@@ -448,8 +531,9 @@ function SSLManager(config) {
         return isValidToken;
     };
 
-    me.creteScriptAndInstall = function createInstallationScript() {
+    me.createScriptAndInstall = function createInstallationScript() {
         return me.exec([
+            [ me.initCustomConfigs ],
             [ me.initAddOnExtIp, config.withExtIp ],
             [ me.initWebrootMethod, config.webroot ],
             [ me.initFalbackToFake, config.fallbackToX1 ],
@@ -506,12 +590,11 @@ function SSLManager(config) {
     };
 
     me.formatDomains = function (domains, bList) {
-
         if (bList) {
-            return domains.replace(/ -d /g, '\n > * ');
+            return (domains || "").replace(/\s+/g, '\n > * ');
         }
 
-        return domains ? domains.replace(/ -d/g, ', ') : "";
+        return (domains || "").replace(/\s+/g, ', ');
     };
 
     me.getEnvName = function () {
@@ -538,7 +621,7 @@ function SSLManager(config) {
             propName,
             resp;
 
-        resp = me.cmd("[[ -f \"" + CUSTOM_CONFIG + "\" ]] && echo true || echo false");
+        resp = me.cmd("[[ -f \"" + CUSTOM_CONFIG + "\" ]] && echo true || echo false", { nodeGroup: config.nodeGroup });
         if (resp.result != 0) return resp;
 
         if (resp.responses[0].out == "true") {
@@ -551,7 +634,7 @@ function SSLManager(config) {
 
             while (propNames.hasMoreElements()) {
                 propName = propNames.nextElement().toString();
-                config[propName] = String(properties.getProperty(propName));
+                config[propName] = config[propName] || String(properties.getProperty(propName));
             }
         }
 
@@ -563,11 +646,13 @@ function SSLManager(config) {
     };
 
     me.initFalbackToFake = function initFalbackToFake(fake) {
+        fake = String(fake) || false;
         config.fallbackToX1 = me.initBoolValue(fake);
         return { result: 0 };
     };
 
     me.initAddOnExtIp = function initAddOnExtIp(withExtIp) {
+        withExtIp = String(withExtIp) || true;
         config.withExtIp = me.initBoolValue(withExtIp) || !jelastic.env.binder.GetExtDomains;
 
         edition = edition || getPlatformEdition();
@@ -577,7 +662,8 @@ function SSLManager(config) {
     };
 
     me.initWebrootMethod = function initWebrootMethod(webroot) {
-        webroot = webroot || false;
+        webroot = webroot || config.webroot;
+        webroot = isDefined(webroot) ? String(webroot) == "true" : false;
         config.webroot = me.initBoolValue(webroot);
         return { result: 0 };
     };
@@ -662,11 +748,11 @@ function SSLManager(config) {
     me.initEntryPoint = function initEntryPoint() {
         var group = config.nodeGroup,
             id = config.nodeId,
-            targetNode,
+            blMasterNode,
             nodes,
             resp;
 
-        if ((!id && !group) || nodeManager.isComputeLayer(group) || (id && group && !nodeManager.isNodeExists())) {
+        if ((!id && !group) || nodeManager.isComputeLayer(group) || (id && group && !nodeManager.isNodeExists()) || config.webroot) {
             resp = nodeManager.getEntryPointGroup();
             if (resp.result != 0) return resp;
 
@@ -676,22 +762,21 @@ function SSLManager(config) {
 
         me.initAddOnExtIp(config.withExtIp);
 
+        if (config.webroot && group == BL) {
+            if (nodeManager.isNodeExists(CP)) group = CP;
+        }
+
         resp = nodeManager.getEnvInfo();
         if (resp.result != 0) return resp;
         nodes = resp.nodes;
 
         for (var j = 0, node; node = nodes[j]; j++) {
             if (node.nodeGroup != group) continue;
+            blMasterNode = nodeManager.getBalancerMasterNode();
 
             if (config.withExtIp) {
-                if (config.webroot && !targetNode) {
-                    targetNode = nodeManager.getBalancerMasterNode() || node;
-                    resp = me.attachExtIpToGroupNodes(targetNode.nodeGroup);
-                    if (resp.result != 0) return resp;
-                } else {
-                    resp = me.attachExtIpIfNeed(node);
-                    if (resp.result != 0) return resp;
-                }
+                resp = config.webroot && !nodeManager.isExtraLayer(node.nodeGroup) ? me.attachExtIpToGroupNodes(blMasterNode ? BL : node.nodeGroup) : me.attachExtIpIfNeed(node);
+                if (resp.result != 0) return resp;
                 nodeManager.updateEnvInfo();
             } else {
                 me.exec([
@@ -733,7 +818,7 @@ function SSLManager(config) {
     };
 
     me.attachExtIpIfNeed = function (node) {
-        if (!node.extIPs || node.extIPs.length == 0) {
+        if (!nodeManager.isIPv4Exists(node) && !nodeManager.isIPv6Exists(node)) {
             return me.exec.call(nodeManager, nodeManager.attachExtIp, node.id);
         }
 
@@ -806,8 +891,13 @@ function SSLManager(config) {
 
             scriptBody = me.replaceText(scriptBody, config);
 
-            //delete the script if it already exists
-            jelastic.dev.scripting.DeleteScript(scriptName);
+            resp = getScript(config.scriptName);
+            if (resp.result == Response.OK) {
+                me.setAddOnAction(CONFIGURE);
+                me.logAction("StartConfigureLEUpdate");
+                //delete the script if it already exists
+                jelastic.dev.scripting.DeleteScript(scriptName);
+            }
 
             //create a new script
             resp = jelastic.dev.scripting.CreateScript(scriptName, "js", scriptBody);
@@ -831,6 +921,10 @@ function SSLManager(config) {
 
         var resp = jelastic.dev.scripting.Eval(config.scriptName, params);
 
+        if (me.getAddOnAction() == CONFIGURE) {
+            me.logAction("EndConfigureLEUpdate", resp);
+        }
+
         if (resp.result == 0 && typeof resp.response === "object" && resp.response.result != 0) {
             resp = resp.response;
         }
@@ -839,27 +933,28 @@ function SSLManager(config) {
     };
 
     me.installLetsEncrypt = function installLetsEncrypt() {
-        var fileName = "install-le.sh",
-            url = me.getScriptUrl(fileName);
+        var url = me.getScriptUrl(INSTALL_LE_SCRIPT);
 
         return nodeManager.cmd([
             "wget --no-check-certificate '%(url)' -O '%(path)'",
             "chmod +x %(path)",
-            "%(path) >> %(log)"
+            "%(path) %(baseUrl) %(clientVersion) >> %(log)"
         ], {
             url : url,
-            path : nodeManager.getScriptPath(fileName)
+            baseUrl: config.baseUrl,
+            clientVersion: config.clientVersion || "",
+            path : nodeManager.getScriptPath(INSTALL_LE_SCRIPT)
         });
     };
 
     me.generateSslConfig = function generateSslConfig() {
-        var path = "opt/letsencrypt/settings",
-            primaryDomain = window.location.host,
+        var primaryDomain = window.location.host,
             envDomain = config.envDomain,
-            customDomains = config.customDomains;
+            skippedDomains = me.getSkippedDomains(),
+            customDomains = me.getCustomDomains();
 
         if (customDomains) {
-            customDomains = me.parseDomains(customDomains).join(" -d ");
+            customDomains = me.parseDomains(customDomains).join(" ");
         }
 
         return nodeManager.cmd('printf "%(params)" > %(path)', {
@@ -874,9 +969,11 @@ function SSLManager(config) {
                 "withExtIp='%(withExtIp)'",
                 "webroot='%(webroot)'",
                 "webrootPath='%(webrootPath)'",
-                "skipped_domains='%(skipped)'"
+                "skipped_domains='%(skipped)'",
+                "updateDecreased='%(updateDecreased)'",
+                "updateDisabled='%(updateDisabled)'"
             ].join("\n"), {
-                domain: customDomains || envDomain,
+                domain: customDomains || "",
                 email : config.email || "",
                 appid : config.envAppid || "",
                 baseDir : config.baseDir,
@@ -887,10 +984,20 @@ function SSLManager(config) {
                 withExtIp : config.withExtIp,
                 webroot : config.webroot,
                 webrootPath : config.webrootPath || "",
-                skipped : config.skippedDomains || ""
+                skipped : config.skippedDomains || "",
+                updateDecreased: !!config.updateDecreased,
+                updateDisabled: !!config.updateDisabled
             }),
-            path : nodeManager.getPath(path)
+            path : nodeManager.getPath(SETTINGS_PATH)
         });
+    };
+
+    me.defineShellCodes = function() {
+        SHELL_CODES[WRONG_DNS_CUSTOM_DOMAINS] = 21;
+        SHELL_CODES[RATE_LIMIT_EXCEEDED] = 22;
+        SHELL_CODES[INVALID_WEBROOT_DIR] = 25;
+        SHELL_CODES[UPLOADER_ERROR] = 26;
+        SHELL_CODES[READ_TIMED_OUT] = 27;
     };
 
     me.generateSslCerts = function generateSslCerts() {
@@ -899,6 +1006,9 @@ function SSLManager(config) {
             validationFileName = VALIDATION_SCRIPT,
             generateSSLScript = nodeManager.getScriptPath(fileName),
             proxyConfigName = "tinyproxy.conf",
+            incorrectDNSText,
+            ancientPython,
+            message,
             tmpResp,
             bUpload,
             text,
@@ -932,6 +1042,7 @@ function SSLManager(config) {
         }
 
         bUpload = nodeManager.checkCustomSSL();
+        me.defineShellCodes();
 
         //execute ssl generation script
         resp = me.analyzeSslResponse(
@@ -957,20 +1068,65 @@ function SSLManager(config) {
             }
         }
 
+        me.exec(me.updateGeneratedCustomDomains);
+
         if (!config.webroot) {
             //removing redirect
             me.exec(me.manageDnat, "remove");
         }
 
-        if (resp.result && resp.result == ANCIENT_VERSION_OF_PYTHON) {
-            log("WARNING: Ancient version of Python");
-            resp = me.exec(me.tryRegenerateSsl);
+        if (resp.result == WRONG_DNS_CUSTOM_DOMAINS) {
+            text = resp.response ? "<ul><li>" + resp.response.replace(/;/g, "</li><li>") + "</li></ul>" : "";
+            message = "The following errors are occurred while updating Let's Encrypt add-on:\n";
+            message += resp.response ? "* " + resp.response.replace(/;/g, "\n* "): "";
+            incorrectDNSText = "\n\nSSL certificates cannot be assigned to the specified custom domains due to incorrect DNS settings. Please, recheck provided data and ensure that listed domains point to the correct public IP (environment entry point or proxy, like CDN) in your domain registrar.";
+            text += "<br>" + incorrectDNSText;
+            return {
+                result: WRONG_DNS_CUSTOM_DOMAINS,
+                error: text,
+                response: text,
+                type: "warning",
+                message: message + incorrectDNSText
+            };
+        }
+
+        if (resp.result == RATE_LIMIT_EXCEEDED) {
+            text = "Error: " + resp.response;
+            return {
+                result: RATE_LIMIT_EXCEEDED,
+                error: text,
+                response: text,
+                type: "warning",
+                message: text
+            };
         }
 
         if (resp.result && resp.result == INVALID_WEBROOT_DIR) {
             text = "webroot_path does not exist or is not a directory";
             return {
                 result: INVALID_WEBROOT_DIR,
+                error: text,
+                response: text,
+                type: "warning",
+                message: text
+            };
+        }
+
+        if (resp.result && resp.result == UPLOADER_ERROR) {
+            text = "There was an error while uploading certificates. Please contact our support team.";
+            return {
+                result: UPLOADER_ERROR,
+                error: text,
+                response: text,
+                type: "warning",
+                message: text
+            };
+        }
+
+        if (resp.result && resp.result == READ_TIMED_OUT) {
+            text = "The Let's Encrypt service is currently unavailable. Check the /var/log/letsencrypt log for more details or try again in a few minutes.";
+            return {
+                result: READ_TIMED_OUT,
                 error: text,
                 response: text,
                 type: "warning",
@@ -1001,10 +1157,19 @@ function SSLManager(config) {
         return String(java.lang.String(config.customDomains.replace(regex, " ")).trim());
     };
 
-    me.tryRegenerateSsl = function tryRegenerateSsl() {
+    me.tryRegenerateSsl = function tryRegenerateSsl(ancientPython) {
+        var resp;
+
+        if (ancientPython) {
+            resp = me.exec([
+                [ me.backupEffPackages ],
+                [ me.installLetsEncrypt ]
+            ]);
+            if (resp.result != 0) return resp;
+        }
+
         return me.execAll([
-            [ me.backupEffPackages ],
-            [ me.installLetsEncrypt ],
+            [ me.generateSslConfig ],
             [ me.generateSslCerts ]
         ]);
     };
@@ -1018,8 +1183,11 @@ function SSLManager(config) {
             out = resp.error + resp.errOut + resp.out;
 
             if (resp) {
-                if (resp.exitStatus == ANCIENT_VERSION_OF_PYTHON) return {result: ANCIENT_VERSION_OF_PYTHON };
-                if (resp.exitStatus == INVALID_WEBROOT_DIR) return { result: INVALID_WEBROOT_DIR}
+                if (resp.exitStatus == SHELL_CODES[WRONG_DNS_CUSTOM_DOMAINS]) return { result: WRONG_DNS_CUSTOM_DOMAINS, response: resp.out}
+                if (resp.exitStatus == SHELL_CODES[INVALID_WEBROOT_DIR]) return { result: INVALID_WEBROOT_DIR}
+                if (resp.exitStatus == SHELL_CODES[UPLOADER_ERROR]) return { result: UPLOADER_ERROR}
+                if (resp.exitStatus == SHELL_CODES[READ_TIMED_OUT]) return { result: READ_TIMED_OUT}
+                if (resp.exitStatus == SHELL_CODES[RATE_LIMIT_EXCEEDED]) return { result: RATE_LIMIT_EXCEEDED, response: resp.out }
             }
 
             //just cutting "out" for debug logging because it's too long in SSL generation output
@@ -1038,6 +1206,7 @@ function SSLManager(config) {
                 if (ind1 != -1) {
                     var ind2 = end ? out.indexOf(end, ind1) : -1;
                     var message = ind2 == -1 ? out.substring(ind1) : out.substring(ind1, ind2); //removed duplicated words in popup
+                    message += "\n \n[More info](https://jelastic.com/blog/free-ssl-certificates-with-lets-encrypt/)";
                     resp = error(Response.ERROR_UNKNOWN, message);
                     break;
                 }
@@ -1075,20 +1244,26 @@ function SSLManager(config) {
         ) || "";
     };
 
-    me.scheduleAutoUpdate = function scheduleAutoUpdate() {
-        var fileName = "auto-update-ssl-cert.sh",
-            scriptUrl = me.getScriptUrl(fileName);
+    me.scheduleAutoUpdate = function scheduleAutoUpdate(crontime) {
+        var scriptUrl = me.getScriptUrl(AUTO_UPDATE_SCRIPT);
 
         return nodeManager.cmd([
             "wget --no-check-certificate '%(url)' -O %(scriptPath)",
             "chmod +x %(scriptPath)",
+            "crontab -l | grep -v '/root/.acme.sh' | crontab -",
             "crontab -l | grep -v '%(scriptPath)' | crontab -",
             "echo \"%(cronTime) su - root -c \\\"%(scriptPath) '%(autoUpdateUrl)' >> %(log)\\\"\" >> /var/spool/cron/root"
         ], {
             url : scriptUrl,
-            cronTime : config.cronTime,
-            scriptPath : nodeManager.getScriptPath(fileName),
+            cronTime : crontime ? crontime : config.cronTime,
+            scriptPath : nodeManager.getScriptPath(AUTO_UPDATE_SCRIPT),
             autoUpdateUrl : me.getAutoUpdateUrl()
+        }, "", true);
+    };
+
+    me.disableAutoUpdate = function disableAutoUpdate() {
+        return nodeManager.cmd("crontab -l | grep -v '%(scriptPath)' | crontab -", {
+            scriptPath : nodeManager.getScriptPath(AUTO_UPDATE_SCRIPT)
         });
     };
 
@@ -1237,9 +1412,15 @@ function SSLManager(config) {
 
     me.sendResp = function sendResp(resp, isUpdate) {
         var action = isUpdate ? "updated" : "installed",
-            skippedDomains = me.getSkippedDomains();
+            skippedDomains = me.getSkippedDomains(),
+            expiredResp;
 
         if (resp.result != 0) {
+            if (isUpdate) {
+                expiredResp = me.exec(me.checkUpdateExpiration);
+                if (expiredResp.result != 0) return expiredResp;
+            }
+
             return me.sendErrResp(resp);
         }
 
@@ -1304,7 +1485,7 @@ function SSLManager(config) {
         }
 
         return me.sendEmail("Error", "html/update-error.html", {
-            SUPPORT_EMAIL : "support@jelastic.com",
+            SUPPORT_EMAIL : SUPPORT_EMAIL,
             ENV_DOMAIN: config.envDomain,
             RESP : resp || ""
         });
@@ -1523,6 +1704,17 @@ function SSLManager(config) {
                 "echo \"IP6-$EXT_IPs_v6\""
             ]);
 
+            resp = me.jemResponseParse(resp);
+
+            return resp;
+        };
+
+        me.jemSslCheckdomain = function() {
+            var resp = nodeManager.cmd([ "jem ssl checkdomain | python -c \"import sys, json; print (json.load(sys.stdin)['expiredate'])\"" ]);
+            return me.jemResponseParse(resp);
+        };
+
+        me.jemResponseParse = function(resp) {
             if (resp.result == Response.JEM_OPERATION_COULD_NOT_BE_PERFORMED) {
                 resp = resp.responses[0];
                 var error = resp.out + "\n" + (resp.errOut || resp.error || "");
@@ -1535,7 +1727,7 @@ function SSLManager(config) {
                     message: error
                 };
             }
-
+            if (resp.result == 0) resp = resp.responses[0].out;
             return resp;
         };
 
@@ -1562,8 +1754,16 @@ function SSLManager(config) {
 
             return { result : 0, node : node };
         };
+        
+        me.isIPv4Exists = function isIPv4Exists(node) {
+            return !!(node.extIPs && node.extIPs.length);
+        };
 
-        me.isNodeExists = function isNodeExists() {
+        me.isIPv6Exists = function isIPv6Exists(node) {
+            return !!(node.extipsv6 && node.extipsv6.length);
+        };
+
+        me.isNodeExists = function isNodeExists(group) {
             var resp,
                 nodes,
                 node;
@@ -1572,6 +1772,7 @@ function SSLManager(config) {
 
             for (var i = 0, n = nodes.length; i < n; i++) {
                 node = nodes[i];
+                if (group && node.nodeGroup == group) return true;
                 if (node.id == config.nodeId && node.nodeGroup == config.nodeGroup) return true;
             }
 
@@ -1647,7 +1848,10 @@ function SSLManager(config) {
         };
 
         me.readFile = function (path, group) {
-            return jelastic.env.file.Read(envName, session, path, null, group || null, nodeId);
+            if (nodeId)
+                return jelastic.env.file.Read(envName, session, path, null, group || null, nodeId);
+            else
+                return jelastic.env.file.Read(envName, session, path, null, group || null);
         };
 
         me.checkCustomSSL = function (targetNode) {
