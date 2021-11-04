@@ -135,6 +135,7 @@ function SSLManager(config) {
             [ me.validateEntryPoint ],
             [ me.generateSslCerts ]
         ]);
+        jelastic.marketplace.console.WriteLog("me.install - resp ->" + resp);
 
         if (resp.result == 0) {
             me.exec(me.scheduleAutoUpdate);
@@ -144,6 +145,7 @@ function SSLManager(config) {
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
+        jelastic.marketplace.console.WriteLog("me.install - resp2 ->" + resp);
         return resp;
     };
 
@@ -1124,7 +1126,6 @@ function SSLManager(config) {
                 message: text
             };
         }
-        jelastic.marketplace.console.WriteLog("resp->" + resp);
 
         if (resp.result == NO_VALID_IP_ADDRESSES) {
             text = "Error: " + resp.response;
