@@ -60,6 +60,7 @@ function SSLManager(config) {
         LB = "lb",
         CP = "cp",
         isValidToken = false,
+        isLEUpdate = false,
         patchBuild = 1,
         debug = [],
         nodeManager,
@@ -134,6 +135,8 @@ function SSLManager(config) {
             [ me.validateEntryPoint ],
             [ me.generateSslCerts ]
         ]);
+
+        isLEUpdate = isUpdate;
 
         if (resp.result == 0) {
             me.exec(me.scheduleAutoUpdate);
@@ -1052,7 +1055,9 @@ function SSLManager(config) {
         tmpResp = me.updateGeneratedCustomDomains();
         if (tmpResp.result != 0) return tmpResp;
 
+        jelastic.marketplace.console.WriteLog("dzotic config->" + config);
         if (resp.result != 0 && config.action == INSTALL) {
+            jelastic.marketplace.console.WriteLog("dzotic me.getOnlyCustomDomains()->" + me.getOnlyCustomDomains());
             if (!me.getOnlyCustomDomains() && (config.fallbackToX1 || !me.isEnvNameInDomains())) {
                 if (!me.isEnvNameInDomains()) {
                     me.addEnvDomainToCustom();
@@ -1322,17 +1327,19 @@ function SSLManager(config) {
         return resp.response || resp
     };
 
-    me.bindSSLCerts = function bindSSLCerts() {
+    me.bindSSLCerts = function bindSSLCerts(certId) {
         var SLB = "SLB",
             resp;
 
-        resp = jelastic.env.binder.GetSSLCerts(config.envName, session);
-        if (resp.result != 0) return resp;
+        if (!certId) {
+            resp = jelastic.env.binder.GetSSLCerts(config.envName, session);
+            if (resp.result != 0) return resp;
+        }
 
         return jelastic.env.binder.BindSSLCert({
             envName: config.envName,
             session: session,
-            certId: resp.responses[resp.responses.length - 1].id,
+            certId: certId || resp.responses[resp.responses.length - 1].id,
             entryPoint: SLB,
             extDomains: me.formatDomains(config.customDomains).replace(/ /g, "")
         });
@@ -1346,7 +1353,6 @@ function SSLManager(config) {
 
         if (cert_key.body && chain.body && cert.body) {
             if (config.withExtIp) {
-
                 if (nodeManager.isExtraLayer(config.nodeGroup)) {
                     resp = me.exec(me.bindSSLOnExtraNode, cert_key.body, cert.body, chain.body);
                 } else {
@@ -1359,6 +1365,11 @@ function SSLManager(config) {
                     });
                 }
             } else {
+                if (isLEUpdate) {
+                    resp = me.exec(me.removeSSLCert);
+                    if (resp.result != 0) return resp;
+                }
+
                 resp = jelastic.env.binder.AddSSLCert({
                     envName: config.envName,
                     session: session,
@@ -1366,7 +1377,10 @@ function SSLManager(config) {
                     cert: cert.body,
                     interm: chain.body
                 });
-                me.exec(me.bindSSLCerts);
+                if (resp.result != 0) return resp;
+
+                resp = me.exec(me.bindSSLCerts, resp.id);
+                if (resp.result != 0) return resp;
             }
         } else {
             resp = error(Response.ERROR_UNKNOWN, "Can't read SSL certificate: key=%(key) cert=%(cert) chain=%(chain)", {
