@@ -1309,6 +1309,8 @@ function SSLManager(config) {
             hookBody = hook;
         }
 
+        jelastic.marketplace.console.WriteLog("hookBody->" + hookBody);
+        jelastic.marketplace.console.WriteLog("hookType->" + hookType);
         if (hookType == "js") {
             return me.exec(me.evalCode, hookBody, config);
         }
