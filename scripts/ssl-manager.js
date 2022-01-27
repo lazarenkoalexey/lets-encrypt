@@ -1299,6 +1299,7 @@ function SSLManager(config) {
         var urlRegex = new RegExp("^[a-z]+:\\/\\/"),
             hookBody;
 
+        jelastic.marketplace.console.WriteLog("hook->" + hook);
         if (urlRegex.test(hook)) {
             try {
                 hookBody = new Transport().get(hook);
