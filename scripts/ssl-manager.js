@@ -46,6 +46,8 @@ function SSLManager(config) {
         INSTALL_LE_SCRIPT = "install-le.sh",
         AUTO_UPDATE_SCRIPT = "auto-update-ssl-cert.sh",
         SETTINGS_PATH = "opt/letsencrypt/settings",
+        KEYS = "var/lib/jelastic/keys/",
+        CLUSTER_CONFIG = KEYS + "le-cluster-config",
         DECREASE_UPDATE_DAYS = 10,
         REMOVE_UPDATE_DAYS = 90,
         SUPPORT_EMAIL = "support@jelastic.com",
@@ -72,8 +74,8 @@ function SSLManager(config) {
 
     nodeManager = new NodeManager(config.envName, config.nodeId, config.baseDir);
     nodeManager.setLogPath("var/log/letsencrypt.log");
-    nodeManager.setBackupPath("var/lib/jelastic/keys/letsencrypt");
-    nodeManager.setCustomSettingsPath("var/lib/jelastic/keys/letsencrypt/settings-custom");
+    nodeManager.setBackupPath(KEYS + "letsencrypt");
+    nodeManager.setCustomSettingsPath(KEYS + "letsencrypt/settings-custom");
 
     me.auth = function (token) {
         if (!config.session && String(token).replace(/\s/g, "") != config.token) {
@@ -123,7 +125,16 @@ function SSLManager(config) {
     };
 
     me.install = function (isUpdate) {
-        var resp = me.exec([
+        var resp;
+
+        resp = me.exec(me.initCustomConfigs, CLUSTER_CONFIG );
+
+        api.marketplace.console.WriteLog("config ->" + config);
+        if (config.cluster && config.skipInstall) {
+            return { result: 0 }
+        }
+
+        resp = me.exec([
             [ me.initCustomConfigs ],
             [ me.initAddOnExtIp, config.withExtIp ],
             [ me.initWebrootMethod, config.webroot ],
@@ -613,8 +624,8 @@ function SSLManager(config) {
         return me.getFileUrl("configs/" + configName);
     };
 
-    me.initCustomConfigs = function initCustomConfigs() {
-        var CUSTOM_CONFIG = nodeManager.getCustomSettingsPath(),
+    me.initCustomConfigs = function initCustomConfigs(customPath) {
+        var CUSTOM_CONFIG = customPath ? (nodeManager.getPath() + customPath) : nodeManager.getCustomSettingsPath(),
             properties = new java.util.Properties(),
             stringReader,
             propNames,
@@ -743,6 +754,21 @@ function SSLManager(config) {
 
         if (resp.result != 0 && resp.result != BUSY_RESULT) return resp;
         return !!(resp.result == BUSY_RESULT);
+    };
+
+    me.checkClusterization = function checkClusterization(){
+        var resp;
+
+        if (config.cluster) {
+
+            return { result: 0 }
+            // if (config.envName == config.envName1) {
+            //     return { result: 0 }
+            // } else {
+            //
+            // }
+
+        }
     };
 
     me.initEntryPoint = function initEntryPoint() {
