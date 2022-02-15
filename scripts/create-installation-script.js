@@ -16,7 +16,8 @@ var baseDir          = getParam("baseDir", "/"),
     appId            = getParam("appId", "letsencrypt-ssl-addon"),
     fallbackToX1     = getParam("fallbackToX1", ""),
     test             = getParam("test", ""),
-    clientVersion    = getParam("clientVersion", "");
+    clientVersion    = getParam("clientVersion", ""),
+    skipInstall      = getParams("skipInstall", "");
 
 function run() {
     var SSLManager = use("scripts/ssl-manager.js", {
@@ -42,7 +43,8 @@ function run() {
         envDomain        : "${env.domain}",
         envAppid         : "${env.appid}",
         email            : "${user.email}",
-        clientVersion    : clientVersion
+        clientVersion    : clientVersion,
+        skipInstall      : skipInstall
     });
 
     jelastic.local.ReturnResult(
