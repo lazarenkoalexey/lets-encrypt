@@ -155,7 +155,7 @@ function SSLManager(config) {
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
         if (config.cluster) {
-            resp = api.marekplac.console.Install({
+            resp = api.marketplace.console.Install({
                 appid: appid,
                 session: session,
                 jps: "https://raw.githubusercontent.com/lazarenkoalexey/lets-encrypt/WP-8-test/manifest.jps",
