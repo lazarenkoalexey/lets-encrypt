@@ -167,7 +167,7 @@ function SSLManager(config) {
                 envName: config.envName == config.envName1 ? config.envName2 : config.envName1,
                 nodeGroup: config.nodeGroup,
                 settings: {
-                    customDomains: me.getCustomDomains()
+                    customDomains: me.getCustomDomains(),
                     skipInstall: true
                 }
             });
