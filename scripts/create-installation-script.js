@@ -17,7 +17,7 @@ var baseDir          = getParam("baseDir", "/"),
     fallbackToX1     = getParam("fallbackToX1", ""),
     test             = getParam("test", ""),
     clientVersion    = getParam("clientVersion", ""),
-    skipInstall      = getParams("skipInstall", "");
+    skipInstall      = getParam("skipInstall", "");
 
 function run() {
     var SSLManager = use("scripts/ssl-manager.js", {
