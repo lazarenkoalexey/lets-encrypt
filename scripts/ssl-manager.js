@@ -154,6 +154,16 @@ function SSLManager(config) {
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
+        if (config.cluster) {
+            resp = api.marekplac.console.Install({
+                appid: appid,
+                session: session,
+                jps: "https://raw.githubusercontent.com/lazarenkoalexey/lets-encrypt/WP-8-test/manifest.jps",
+                envName: config.envName == config.envName1 ? config.envName2 : config.envName1,
+                nodeGroup: config.nodeGroup
+            });
+        }
+
         return resp;
     };
 
