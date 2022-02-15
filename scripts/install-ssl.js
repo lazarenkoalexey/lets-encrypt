@@ -37,7 +37,8 @@ function run() {
         fallbackToX1     : "${fallbackToX1}",
         patchVersion     : "${patchVersion}",
         test             : "${test}",
-        clientVersion    : "${clientVersion}"
+        clientVersion    : "${clientVersion}",
+        skipInstall      : "${skipInstall}"
     });
 
     var resp = SSLManager.auth(token);
