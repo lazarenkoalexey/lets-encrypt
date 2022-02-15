@@ -131,6 +131,11 @@ function SSLManager(config) {
 
         api.marketplace.console.WriteLog("config ->" + config);
         if (config.cluster && config.skipInstall) {
+
+            if (isUpdate) {
+
+            }
+
             return { result: 0 }
         }
 
@@ -160,8 +165,14 @@ function SSLManager(config) {
                 session: session,
                 jps: "https://raw.githubusercontent.com/lazarenkoalexey/lets-encrypt/WP-8-test/manifest.jps",
                 envName: config.envName == config.envName1 ? config.envName2 : config.envName1,
-                nodeGroup: config.nodeGroup
+                nodeGroup: config.nodeGroup,
+                settings: {
+                    customDomains: me.getCustomDomains()
+                    skipInstall: true
+                }
             });
+
+            api.marketplace.console.WriteLog("Install resp->" + resp);
         }
 
         return resp;
@@ -315,7 +326,8 @@ function SSLManager(config) {
             deployHook          : config.deployHook || "",
             deployHookType      : config.deployHookType || "",
             undeployHook        : config.undeployHook || "",
-            undeployHookType    : config.undeployHookType || ""
+            undeployHookType    : config.undeployHookType || "",
+            skipInstall         : config.skipInstall || ""
         };
 
         resp = jelastic.marketplace.jps.install({
