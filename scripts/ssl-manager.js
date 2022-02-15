@@ -160,6 +160,8 @@ function SSLManager(config) {
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
         if (config.cluster) {
+
+            api.marketplace.console.WriteLog("Install resp before me.getOnlyCustomDomains()->" + me.getOnlyCustomDomains());
             resp = api.marketplace.jps.Install({
                 appid: appid,
                 session: session,
@@ -167,7 +169,7 @@ function SSLManager(config) {
                 envName: config.envName == config.envName1 ? config.envName2 : config.envName1,
                 nodeGroup: config.nodeGroup,
                 settings: {
-                    customDomains: me.getCustomDomains(),
+                    customDomains: me.getOnlyCustomDomains(),
                     skipInstall: true
                 }
             });
