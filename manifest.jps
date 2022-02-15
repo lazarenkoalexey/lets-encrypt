@@ -108,6 +108,7 @@ onInstall:
       deployHookType: ${settings.deployHookType:}
       undeployHook: ${settings.undeployHook:}
       undeployHookType: ${settings.undeployHookType:}
+      skipInstall: ${settings.skipInstall:}
       test: ${settings.test:}
   - installScript
 
@@ -131,6 +132,7 @@ onAfterClone:
     webroot: ${globals.webroot}
     webrootPath: ${globals.webrootPath}
     fallbackToX1: ${globals.fallbackToX1}
+    skipInstall: ${globals.skipInstall:}
     test: ${globals.test}
 
 onAfterConfirmTransfer: installScript
@@ -155,6 +157,7 @@ actions:
       fallbackToX1: ${globals.fallbackToX1}
       test: ${globals.test}
       clientVersion: ${globals.version_acme-sh:}
+      skipInstall: ${globals.skipInstall:}
   callScript:
     script: |
       var j = jelastic, resp = j.dev.scripting.Eval(appid, session, '${env.envName}-${targetNodes.nodeGroup}-${globals.scriptSufix}', {action:'${this.action}'});
