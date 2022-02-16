@@ -56,6 +56,7 @@ function SSLManager(config) {
         Random = com.hivext.api.utils.Random,
         isAddedEnvDomain = false,
         INSTALL = "install",
+        UPDATE = "update",
         LIGHT = "LIGHT",
         me = this,
         BL = "bl",
@@ -127,16 +128,11 @@ function SSLManager(config) {
     me.install = function (isUpdate) {
         var resp;
 
-        resp = me.exec(me.initCustomConfigs, CLUSTER_CONFIG );
+        if (config.cluster) {
+            resp = me.manageClustering(isUpdate);
+            if (resp.result != 0) return resp;
 
-        api.marketplace.console.WriteLog("config ->" + config);
-        if (config.cluster && config.skipInstall) {
-
-            if (isUpdate) {
-
-            }
-
-            return { result: 0 }
+            if (config.skipInstall) return resp;
         }
 
         resp = me.exec([
@@ -159,22 +155,10 @@ function SSLManager(config) {
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
-        if (config.cluster) {
-
-            api.marketplace.console.WriteLog("Install resp before me.getOnlyCustomDomains()->" + me.getOnlyCustomDomains());
-            resp = api.marketplace.jps.Install({
-                appid: appid,
-                session: session,
-                jps: "https://raw.githubusercontent.com/lazarenkoalexey/lets-encrypt/WP-8-test/manifest.jps",
-                envName: config.envName == config.envName1 ? config.envName2 : config.envName1,
-                nodeGroup: config.nodeGroup,
-                settings: {
-                    customDomains: me.getOnlyCustomDomains(),
-                    skipInstall: true
-                }
-            });
-
-            api.marketplace.console.WriteLog("Install resp->" + resp);
+        if (config.cluster) { //execute on the second env LE add-on
+            resp = me.executeSkippedInstallation();
+            if (resp.result != 0) return resp;
+            api.marketplace.console.WriteLog("marketplace.jps.Install resp->" + resp);
         }
 
         return resp;
@@ -636,6 +620,14 @@ function SSLManager(config) {
         return config.envName || "";
     };
 
+    me.setSecondClusterEnvName = function (envName) {
+        config.clusterEnvName = envName;
+    };
+
+    me.getSecondClusterEnvName = function () {
+        return config.clusterEnvName || "";
+    };
+
     me.getFileUrl = function (filePath) {
         return config.baseUrl + "/" + filePath + "?_r=" + Math.random();
     };
@@ -723,6 +715,62 @@ function SSLManager(config) {
         return { result: 0 };
     };
 
+    me.manageClustering = function manageClustering(isUpdate) {
+        var uniqueName,
+            resp;
+
+        resp = me.exec(me.initCustomConfigs, CLUSTER_CONFIG );
+
+        api.marketplace.console.WriteLog("config ->" + config);
+        me.setSecondClusterEnvName(config.envName == config.envName1 ? config.envName2 : config.envName1);
+
+        if (config.skipInstall && isUpdate) {
+            resp = api.dev.scripting.Eval("appstore", session, "GetApps", {
+                targetAppid: me.getSecondClusterEnvName(),
+                search: {
+                    appstore: 1,
+                    nodeGroup: config.nodeGroup,
+                    nodeType: nodeManager.getNodeType(),
+                    jpsType: UPDATE
+                }
+            });
+            if (resp.result != 0) return resp;
+
+            if (resp.response && resp.response.apps) {
+                for (var i = 0, n = resp.response.apps.length; i < n; i++) {
+                    if (resp.response.apps[i].app_id == "letsencrypt-ssl-addon") {
+                        uniqueName = resp.response.apps[i].uniqueName;
+                        break;
+                    }
+                }
+            }
+
+            resp = api.marketplace.jps.ExecuteAppAction({
+                appid: appid,
+                session: session,
+                appUniqueName: uniqueName,
+                action: UPDATE
+            });
+            if (resp.result != 0) return resp;
+        }
+
+        return { result: 0 }
+    };
+    
+    me.executeSkippedInstallation = function executeSkippedInstallation(jps) {
+        return api.marketplace.jps.Install({
+            appid: appid,
+            session: session,
+            jps: jps || "https://raw.githubusercontent.com/lazarenkoalexey/lets-encrypt/WP-8-test/manifest.jps",
+            envName: me.getSecondClusterEnvName(),
+            nodeGroup: config.nodeGroup,
+            settings: {
+                customDomains: me.getOnlyCustomDomains(),
+                skipInstall: true
+            }
+        });
+    };
+
     me.bindExtDomains = function bindExtDomains() {
         var customDomains = config.customDomains,
             bindedDomains = config.bindedDomains,
@@ -778,21 +826,6 @@ function SSLManager(config) {
 
         if (resp.result != 0 && resp.result != BUSY_RESULT) return resp;
         return !!(resp.result == BUSY_RESULT);
-    };
-
-    me.checkClusterization = function checkClusterization(){
-        var resp;
-
-        if (config.cluster) {
-
-            return { result: 0 }
-            // if (config.envName == config.envName1) {
-            //     return { result: 0 }
-            // } else {
-            //
-            // }
-
-        }
     };
 
     me.initEntryPoint = function initEntryPoint() {
@@ -1803,6 +1836,23 @@ function SSLManager(config) {
             }
 
             return { result : 0, node : node };
+        };
+
+        me.getNodeType = function() {
+            var nodes;
+
+            if (!config.nodeType) {
+                nodes = me.getNodes();
+
+                for (var i = 0, n = nodes.length; i < n; i++) {
+                    if (nodes[i].nodeGroup == config.nodeGroup) {
+                        config.nodeType = nodes[i].nodeType;
+                        break;
+                    }
+                }
+            }
+
+            return config.nodeType;
         };
         
         me.isIPv4Exists = function isIPv4Exists(node) {
