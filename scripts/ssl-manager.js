@@ -722,6 +722,7 @@ function SSLManager(config) {
 
     me.manageClustering = function manageClustering(isUpdate) {
         var uniqueName,
+            envApid,
             resp;
 
         api.marketplace.console.WriteLog("config ->" + config);
@@ -729,10 +730,14 @@ function SSLManager(config) {
 
         api.marketplace.console.WriteLog("config ->" + config);
         api.marketplace.console.WriteLog("isUpdate ->" + isUpdate);
-        api.marketplace.console.WriteLog("nodeManager.getNodeType() ->" + nodeManager.getNodeType());
+        api.marketplace.console.WriteLog("nodeManager.getNodeType() envApid ->" + nodeManager.getNodeType());
         if (config.skipInstall && isUpdate) {
+            resp = nodeManager.getClusterEnvInfo(me.getSecondClusterEnvName());
+            if (resp.result != 0) return resp;
+            envApid = resp.env.apid;
+
             resp = api.dev.scripting.Eval("appstore", session, "GetApps", {
-                targetAppid: me.getSecondClusterEnvName(),
+                targetAppid: envApid,
                 search: {
                     appstore: 1,
                     nodeGroup: config.nodeGroup,
@@ -1844,6 +1849,10 @@ function SSLManager(config) {
             }
 
             return { result : 0, node : node };
+        };
+
+        me.getClusterEnvInfo = function(envName) {
+            return api.env.control.GetEnvInfo(envName, session);
         };
 
         me.getNodeType = function() {
