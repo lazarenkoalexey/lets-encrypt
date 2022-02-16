@@ -732,7 +732,9 @@ function SSLManager(config) {
         api.marketplace.console.WriteLog("isUpdate ->" + isUpdate);
         api.marketplace.console.WriteLog("nodeManager.getNodeType() envApid ->" + nodeManager.getNodeType());
         if (config.skipInstall && isUpdate) {
+            api.marketplace.console.WriteLog("VEFORE getClusterEnvInfo ->");
             resp = nodeManager.getClusterEnvInfo(me.getSecondClusterEnvName());
+            api.marketplace.console.WriteLog("getClusterEnvInfo ->" + resp);
             if (resp.result != 0) return resp;
             envApid = resp.env.apid;
 
