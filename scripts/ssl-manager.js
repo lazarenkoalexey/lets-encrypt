@@ -158,8 +158,8 @@ function SSLManager(config) {
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
-        jelastic.marketplace.console.WriteLog("before onfig.cluster->" + config.cluster);
-        if (config.cluster) { //execute on the second env LE add-on
+        jelastic.marketplace.console.WriteLog("before ooonfig.cluster->" + config.cluster);
+        if (config.cluster && !isUpdate) { //execute on the second env LE add-on
             api.marketplace.console.WriteLog("in onfig.cluster->");
             resp = me.executeSkippedInstallation();
             if (resp.result != 0) return resp;
