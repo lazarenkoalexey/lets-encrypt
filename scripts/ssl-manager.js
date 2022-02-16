@@ -736,7 +736,7 @@ function SSLManager(config) {
             resp = nodeManager.getClusterEnvInfo(me.getSecondClusterEnvName());
             api.marketplace.console.WriteLog("getClusterEnvInfo ->" + resp);
             if (resp.result != 0) return resp;
-            envApid = resp.env.apid;
+            envApid = resp.env.appid;
 
             api.marketplace.console.WriteLog("envApid ->" + envApid);
 
