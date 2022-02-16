@@ -736,6 +736,8 @@ function SSLManager(config) {
             if (resp.result != 0) return resp;
             envApid = resp.env.apid;
 
+            api.marketplace.console.WriteLog("envApid ->" + envApid);
+
             resp = api.dev.scripting.Eval("appstore", session, "GetApps", {
                 targetAppid: envApid,
                 search: {
