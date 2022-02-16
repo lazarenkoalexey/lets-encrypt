@@ -155,7 +155,9 @@ function SSLManager(config) {
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
+        jelastic.marketplace.console.WriteLog("before onfig.cluster->" + config.cluster);
         if (config.cluster) { //execute on the second env LE add-on
+            api.marketplace.console.WriteLog("in onfig.cluster->");
             resp = me.executeSkippedInstallation();
             if (resp.result != 0) return resp;
             api.marketplace.console.WriteLog("marketplace.jps.Install resp->" + resp);
@@ -756,7 +758,7 @@ function SSLManager(config) {
 
         return { result: 0 }
     };
-    
+
     me.executeSkippedInstallation = function executeSkippedInstallation(jps) {
         return api.marketplace.jps.Install({
             appid: appid,
