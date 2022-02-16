@@ -128,6 +128,9 @@ function SSLManager(config) {
     me.install = function (isUpdate) {
         var resp;
 
+        resp = me.exec(me.initCustomConfigs, CLUSTER_CONFIG );
+        if (resp.result != 0) return resp;
+        
         if (config.cluster) {
             resp = me.manageClustering(isUpdate);
             if (resp.result != 0) return resp;
@@ -720,8 +723,6 @@ function SSLManager(config) {
     me.manageClustering = function manageClustering(isUpdate) {
         var uniqueName,
             resp;
-
-        resp = me.exec(me.initCustomConfigs, CLUSTER_CONFIG );
 
         api.marketplace.console.WriteLog("config ->" + config);
         me.setSecondClusterEnvName(config.envName == config.envName1 ? config.envName2 : config.envName1);
