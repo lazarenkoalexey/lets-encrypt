@@ -729,6 +729,7 @@ function SSLManager(config) {
 
         api.marketplace.console.WriteLog("config ->" + config);
         api.marketplace.console.WriteLog("isUpdate ->" + isUpdate);
+        api.marketplace.console.WriteLog("nodeManager.getNodeType() ->" + nodeManager.getNodeType());
         if (config.skipInstall && isUpdate) {
             resp = api.dev.scripting.Eval("appstore", session, "GetApps", {
                 targetAppid: me.getSecondClusterEnvName(),
@@ -739,6 +740,7 @@ function SSLManager(config) {
                     jpsType: UPDATE
                 }
             });
+            api.marketplace.console.WriteLog("GetApps resp ->" + resp);
             if (resp.result != 0) return resp;
 
             if (resp.response && resp.response.apps) {
@@ -749,7 +751,7 @@ function SSLManager(config) {
                     }
                 }
             }
-            
+
             api.marketplace.console.WriteLog("uniqueName ->" + uniqueName);
             resp = api.marketplace.jps.ExecuteAppAction({
                 appid: appid,
