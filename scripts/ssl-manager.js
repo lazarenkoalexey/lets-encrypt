@@ -130,7 +130,7 @@ function SSLManager(config) {
 
         resp = me.exec(me.initCustomConfigs, CLUSTER_CONFIG );
         if (resp.result != 0) return resp;
-        
+
         if (config.cluster) {
             resp = me.manageClustering(isUpdate);
             if (resp.result != 0) return resp;
@@ -727,6 +727,8 @@ function SSLManager(config) {
         api.marketplace.console.WriteLog("config ->" + config);
         me.setSecondClusterEnvName(config.envName == config.envName1 ? config.envName2 : config.envName1);
 
+        api.marketplace.console.WriteLog("config ->" + config);
+        api.marketplace.console.WriteLog("isUpdate ->" + isUpdate);
         if (config.skipInstall && isUpdate) {
             resp = api.dev.scripting.Eval("appstore", session, "GetApps", {
                 targetAppid: me.getSecondClusterEnvName(),
@@ -747,7 +749,8 @@ function SSLManager(config) {
                     }
                 }
             }
-
+            
+            api.marketplace.console.WriteLog("uniqueName ->" + uniqueName);
             resp = api.marketplace.jps.ExecuteAppAction({
                 appid: appid,
                 session: session,
