@@ -566,7 +566,7 @@ function SSLManager(config) {
             [ me.initEntryPoint ],
             [ me.validateEntryPoint ],
             [ me.createScript ],
-            [ me.evalScript, INSTALL ]
+            [ me.evalScript, INSTALL, me.getAddOnAction() ]
         ]);
     };
 
@@ -1020,10 +1020,11 @@ function SSLManager(config) {
         return resp;
     };
 
-    me.evalScript = function evalScript(action) {
+    me.evalScript = function evalScript(action, parentAction) {
         var params = { token : config.token };
 
         if (action) params.action = action;
+        if (parentAction) params.parentAction = parentAction;
         params.fallbackToX1 = config.fallbackToX1;
 
         var resp = jelastic.dev.scripting.Eval(config.scriptName, params);
