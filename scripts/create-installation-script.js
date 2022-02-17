@@ -12,12 +12,13 @@ var baseDir          = getParam("baseDir", "/"),
     undeployHookType = getParam("undeployHookType", ""),
     withExtIp        = getParam("withExtIp", ""),
     webroot          = getParam("webroot", ""),
-    webrootPath     = getParam("webrootPath", ""),
+    webrootPath      = getParam("webrootPath", ""),
     appId            = getParam("appId", "letsencrypt-ssl-addon"),
     fallbackToX1     = getParam("fallbackToX1", ""),
     test             = getParam("test", ""),
     clientVersion    = getParam("clientVersion", ""),
-    skipInstall      = getParam("skipInstall", "");
+    skipInstall      = getParam("skipInstall", ""),
+    parentAction     = getParam("parentAction", "");
 
 function run() {
     var SSLManager = use("scripts/ssl-manager.js", {
@@ -44,7 +45,8 @@ function run() {
         envAppid         : "${env.appid}",
         email            : "${user.email}",
         clientVersion    : clientVersion,
-        skipInstall      : skipInstall
+        skipInstall      : skipInstall,
+        parentAction     : parentAction
     });
 
     jelastic.local.ReturnResult(
