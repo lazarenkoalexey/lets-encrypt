@@ -158,6 +158,7 @@ actions:
       test: ${globals.test}
       clientVersion: ${globals.version_acme-sh:}
       skipInstall: ${globals.skipInstall:}
+      action: ${this.action:}
   callScript:
     script: |
       var j = jelastic, resp = j.dev.scripting.Eval(appid, session, '${env.envName}-${targetNodes.nodeGroup}-${globals.scriptSufix}', {action:'${this.action}'});
@@ -166,7 +167,9 @@ actions:
   update:
     - callScript:
         action: auto-update
-  configure: installScript
+  configure:
+    installScript:
+      action: ${event.params.action}
   delete:
     script: |
       jelastic.dev.scripting.DeleteScript('${env.envName}-${targetNodes.nodeGroup}-${globals.scriptSufix}');
