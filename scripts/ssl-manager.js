@@ -566,7 +566,7 @@ function SSLManager(config) {
             [ me.initEntryPoint ],
             [ me.validateEntryPoint ],
             [ me.createScript ],
-            [ me.evalScript, INSTALL, me.getAddOnAction() ]
+            [ me.evalScript, INSTALL, config.action ]
         ]);
     };
 
@@ -1027,6 +1027,7 @@ function SSLManager(config) {
         if (parentAction) params.parentAction = parentAction;
         params.fallbackToX1 = config.fallbackToX1;
 
+        api.marketplace.console.WriteLog("params->>" + params);
         var resp = jelastic.dev.scripting.Eval(config.scriptName, params);
 
         if (me.getAddOnAction() == CONFIGURE) {
