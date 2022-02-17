@@ -128,6 +128,7 @@ function SSLManager(config) {
     me.install = function (isUpdate) {
         var resp;
 
+        api.marketplace.console.WriteLog("config->>>>" + config);
         resp = me.exec(me.initCustomConfigs, CLUSTER_CONFIG );
         if (resp.result != 0) return resp;
 
@@ -612,7 +613,7 @@ function SSLManager(config) {
     me.getSkippedDomains = function () {
         return config.skippedDomains || "";
     };
-    
+
     me.getAllCustomDomains = function () {
         return config.customDomains + " " + config.skippedDomains;
     };
