@@ -775,6 +775,8 @@ function SSLManager(config) {
     };
 
     me.executeSkippedInstallation = function executeSkippedInstallation(jps) {
+        api.marketplace.console.WriteLog("me.getOnlyCustomDomains()->" + me.getOnlyCustomDomains());
+        api.marketplace.console.WriteLog("config->" + config);
         return api.marketplace.jps.Install({
             appid: appid,
             session: session,
