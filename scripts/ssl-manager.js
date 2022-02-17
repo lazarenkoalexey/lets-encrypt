@@ -612,6 +612,10 @@ function SSLManager(config) {
     me.getSkippedDomains = function () {
         return config.skippedDomains || "";
     };
+    
+    me.getAllCustomDomains = function () {
+        return config.customDomains + " " + config.skippedDomains;
+    };
 
     me.formatDomains = function (domains, bList) {
         if (bList) {
@@ -775,7 +779,7 @@ function SSLManager(config) {
     };
 
     me.executeSkippedInstallation = function executeSkippedInstallation(jps) {
-        api.marketplace.console.WriteLog("me.getOnlyCustomDomains()->" + me.getOnlyCustomDomains());
+        api.marketplace.console.WriteLog("me.getAllCustomDomains()->" + me.getAllCustomDomains());
         api.marketplace.console.WriteLog("config->" + config);
         return api.marketplace.jps.Install({
             appid: appid,
@@ -784,7 +788,7 @@ function SSLManager(config) {
             envName: me.getSecondClusterEnvName(),
             nodeGroup: config.nodeGroup,
             settings: {
-                customDomains: me.getOnlyCustomDomains(),
+                customDomains: me.getAllCustomDomains(),
                 skipInstall: true
             }
         });
