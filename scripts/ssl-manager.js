@@ -615,7 +615,7 @@ function SSLManager(config) {
     };
 
     me.getAllCustomDomains = function () {
-        return config.customDomains + " " + config.skippedDomains;
+        return me.getCustomDomains() + " " + me.getSkippedDomains();
     };
 
     me.formatDomains = function (domains, bList) {
@@ -776,6 +776,7 @@ function SSLManager(config) {
                     }
                 }
 
+                api.marketplace.console.WriteLog("params isConfigure ->" + params);
                 api.marketplace.console.WriteLog("uniqueName ->" + uniqueName);
                 resp = api.marketplace.jps.ExecuteAppAction({
                     appid: appid,
