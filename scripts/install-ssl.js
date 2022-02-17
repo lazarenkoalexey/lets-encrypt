@@ -1,7 +1,7 @@
 //@url('/${scriptName}')
 
 var action = getParam("action", "install"),
-    parentAction = getParam("parentAction", ""),
+    parentAction = getParam("action", ""),
     patchVersion  = getParam("patchVersion"),
     token  = getParam("token"),
     isTask = getParam("task"),
