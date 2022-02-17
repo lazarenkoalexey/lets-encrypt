@@ -726,54 +726,66 @@ function SSLManager(config) {
     };
 
     me.manageClustering = function manageClustering(isUpdate) {
-        var uniqueName,
+        var isConfigure,
+            uniqueName,
             envApid,
+            params = {},
             resp;
 
+        isConfigure = !!(config.parentAction == CONFIGURE);
         api.marketplace.console.WriteLog("config ->" + config);
         me.setSecondClusterEnvName(config.envName == config.envName1 ? config.envName2 : config.envName1);
 
         api.marketplace.console.WriteLog("config ->" + config);
         api.marketplace.console.WriteLog("isUpdate ->" + isUpdate);
         api.marketplace.console.WriteLog("nodeManager.getNodeType() envApid ->" + nodeManager.getNodeType());
-        if (config.skipInstall && isUpdate) {
-            api.marketplace.console.WriteLog("VEFORE getClusterEnvInfo ->");
-            resp = nodeManager.getClusterEnvInfo(me.getSecondClusterEnvName());
-            api.marketplace.console.WriteLog("getClusterEnvInfo ->" + resp);
-            if (resp.result != 0) return resp;
-            envApid = resp.env.appid;
+        if (config.skipInstall) {
+            if (isUpdate || isConfigure) {
+                api.marketplace.console.WriteLog("VEFORE getClusterEnvInfo ->");
+                resp = nodeManager.getClusterEnvInfo(me.getSecondClusterEnvName());
+                api.marketplace.console.WriteLog("getClusterEnvInfo ->" + resp);
+                if (resp.result != 0) return resp;
+                envApid = resp.env.appid;
 
-            api.marketplace.console.WriteLog("envApid ddd->" + envApid);
+                api.marketplace.console.WriteLog("envApid ddd->" + envApid);
 
-            resp = api.dev.scripting.Eval("appstore", session, "GetApps", {
-                targetAppid: envApid,
-                search: {
-                    appstore: 1,
-                    nodeGroup: config.nodeGroup,
-                    nodeType: nodeManager.getNodeType(),
-                    jpsType: UPDATE
-                }
-            });
-            api.marketplace.console.WriteLog("GetApps resp ->" + resp);
-            if (resp.result != 0) return resp;
+                resp = api.dev.scripting.Eval("appstore", session, "GetApps", {
+                    targetAppid: envApid,
+                    search: {
+                        appstore: 1,
+                        nodeGroup: config.nodeGroup,
+                        nodeType: nodeManager.getNodeType(),
+                        jpsType: UPDATE
+                    }
+                });
+                api.marketplace.console.WriteLog("GetApps resp ->" + resp);
+                if (resp.result != 0) return resp;
 
-            if (resp.response && resp.response.apps) {
-                for (var i = 0, n = resp.response.apps.length; i < n; i++) {
-                    if (resp.response.apps[i].app_id == "letsencrypt-ssl-addon") {
-                        uniqueName = resp.response.apps[i].uniqueName;
-                        break;
+                if (resp.response && resp.response.apps) {
+                    for (var i = 0, n = resp.response.apps.length; i < n; i++) {
+                        if (resp.response.apps[i].app_id == "letsencrypt-ssl-addon") {
+                            uniqueName = resp.response.apps[i].uniqueName;
+                            break;
+                        }
                     }
                 }
-            }
 
-            api.marketplace.console.WriteLog("uniqueName ->" + uniqueName);
-            resp = api.marketplace.jps.ExecuteAppAction({
-                appid: appid,
-                session: session,
-                appUniqueName: uniqueName,
-                action: UPDATE
-            });
-            if (resp.result != 0) return resp;
+                if (isConfigure) {
+                    params = {
+                        customDomains: me.getAllCustomDomains()
+                    }
+                }
+
+                api.marketplace.console.WriteLog("uniqueName ->" + uniqueName);
+                resp = api.marketplace.jps.ExecuteAppAction({
+                    appid: appid,
+                    session: session,
+                    appUniqueName: uniqueName,
+                    action: isConfigure ? CONFIGURE : UPDATE,
+                    params: params
+                });
+                if (resp.result != 0) return resp;
+            }
         }
 
         return { result: 0 }
