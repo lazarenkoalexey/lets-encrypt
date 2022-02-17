@@ -63,6 +63,7 @@ function SSLManager(config) {
         LB = "lb",
         CP = "cp",
         isValidToken = false,
+        isConfigure = false,
         patchBuild = 1,
         debug = [],
         nodeManager,
@@ -160,8 +161,8 @@ function SSLManager(config) {
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
         jelastic.marketplace.console.WriteLog("before ooonfig.cluster->" + config.cluster);
-        if (config.cluster && !isUpdate) { //execute on the second env LE add-on
-            api.marketplace.console.WriteLog("in onfig.cluster->");
+        if (config.cluster && !isUpdate && !isConfigure) { //execute on the second env LE add-on
+            api.marketplace.console.WriteLog("in onfig.clusterrrr->");
             resp = me.executeSkippedInstallation();
             if (resp.result != 0) return resp;
             api.marketplace.console.WriteLog("marketplace.jps.Install resp->" + resp);
@@ -726,8 +727,7 @@ function SSLManager(config) {
     };
 
     me.manageClustering = function manageClustering(isUpdate) {
-        var isConfigure,
-            uniqueName,
+        var uniqueName,
             envApid,
             params = {},
             resp;
