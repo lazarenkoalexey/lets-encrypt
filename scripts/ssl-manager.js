@@ -565,8 +565,8 @@ function SSLManager(config) {
             [ me.applyCustomDomains, config.customDomains ],
             [ me.initEntryPoint ],
             [ me.validateEntryPoint ],
-            [ me.createScript ],
-            [ me.evalScript, INSTALL, config.action ]
+            [ me.createScript, config.action ],
+            [ me.evalScript, INSTALL ]
         ]);
     };
 
@@ -984,7 +984,7 @@ function SSLManager(config) {
         return resp;
     };
 
-    me.createScript = function createScript() {
+    me.createScript = function createScript(action) {
         var url = me.getScriptUrl("install-ssl.js"),
             scriptName = config.scriptName,
             scriptBody,
@@ -995,7 +995,8 @@ function SSLManager(config) {
 
             config.token = Random.getPswd(64);
             config.patchVersion = patchBuild;
-
+            if (action) config.parentAction = action;
+            api.marketplace.console.WriteLog("config   ssss->>" + config);
             scriptBody = me.replaceText(scriptBody, config);
 
             resp = getScript(config.scriptName);
@@ -1020,14 +1021,12 @@ function SSLManager(config) {
         return resp;
     };
 
-    me.evalScript = function evalScript(action, parentAction) {
+    me.evalScript = function evalScript(action) {
         var params = { token : config.token };
 
         if (action) params.action = action;
-        if (parentAction) params.parentAction = parentAction;
         params.fallbackToX1 = config.fallbackToX1;
 
-        api.marketplace.console.WriteLog("params->>" + params);
         var resp = jelastic.dev.scripting.Eval(config.scriptName, params);
 
         if (me.getAddOnAction() == CONFIGURE) {
