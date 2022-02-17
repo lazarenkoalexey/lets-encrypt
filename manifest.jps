@@ -169,7 +169,7 @@ actions:
         action: auto-update
   configure:
     installScript:
-      action: ${event.params.action}
+      action: configure
   delete:
     script: |
       jelastic.dev.scripting.DeleteScript('${env.envName}-${targetNodes.nodeGroup}-${globals.scriptSufix}');
