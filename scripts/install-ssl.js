@@ -40,7 +40,7 @@ function run() {
         test             : "${test}",
         clientVersion    : "${clientVersion}",
         skipInstall      : "${skipInstall}",
-        parentAction     : "${parentAction}" + 1
+        parentAction     : "${parentAction}"
     });
 
     var resp = SSLManager.auth(token);
