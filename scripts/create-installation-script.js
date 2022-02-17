@@ -17,8 +17,7 @@ var baseDir          = getParam("baseDir", "/"),
     fallbackToX1     = getParam("fallbackToX1", ""),
     test             = getParam("test", ""),
     clientVersion    = getParam("clientVersion", ""),
-    skipInstall      = getParam("skipInstall", ""),
-    parentAction     = getParam("parentAction", "");
+    skipInstall      = getParam("skipInstall", "");
 
 function run() {
     var SSLManager = use("scripts/ssl-manager.js", {
@@ -46,7 +45,7 @@ function run() {
         email            : "${user.email}",
         clientVersion    : clientVersion,
         skipInstall      : skipInstall,
-        parentAction     : parentAction
+        parentAction     : "${event.action}"
     });
 
     jelastic.local.ReturnResult(
