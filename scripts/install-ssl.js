@@ -1,6 +1,7 @@
 //@url('/${scriptName}')
 
 var action = getParam("action", "install"),
+    parentAction = getParam("parentAction", ""),
     patchVersion  = getParam("patchVersion"),
     token  = getParam("token"),
     isTask = getParam("task"),
@@ -38,7 +39,8 @@ function run() {
         patchVersion     : "${patchVersion}",
         test             : "${test}",
         clientVersion    : "${clientVersion}",
-        skipInstall      : "${skipInstall}"
+        skipInstall      : "${skipInstall}",
+        parentAction     : "${parentAction}"
     });
 
     var resp = SSLManager.auth(token);
