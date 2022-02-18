@@ -818,10 +818,11 @@ function SSLManager(config) {
     me.checkClustering = function () {
         var resp;
 
+        api.marketplace.console.WriteLog("KEYS + config.appId + \".lock\" resp->" + KEYS + config.appId + ".lock");
         resp = me.initCustomConfigs(KEYS + config.appId + ".lock");
+        api.marketplace.console.WriteLog("initCustomConfigs resp->" + resp);
         if (resp.result != 0) return resp;
 
-        api.marketplace.console.WriteLog("initCustomConfigs resp->" + resp);
         if (config.cluster) {
             api.marketplace.console.WriteLog("me.isLockFileExists() resp->" + me.isLockFileExists());
             if (me.isLockFileExists()) {
