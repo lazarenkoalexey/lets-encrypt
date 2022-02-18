@@ -126,7 +126,7 @@ function SSLManager(config) {
     me.install = function (isUpdate) {
         var resp;
 
-        resp = me.exec(me.checkClustering);
+        resp = me.checkClustering;
         api.marketplace.console.WriteLog("checkClustering - resp -> " + resp);
         if (resp.skipInstall) return { result: 0 };
 
@@ -821,7 +821,9 @@ function SSLManager(config) {
         resp = me.initCustomConfigs(KEYS + config.appId + ".lock");
         if (resp.result != 0) return resp;
 
+        api.marketplace.console.WriteLog("initCustomConfigs resp->" + resp);
         if (config.cluster) {
+            api.marketplace.console.WriteLog("me.isLockFileExists() resp->" + me.isLockFileExists());
             if (me.isLockFileExists()) {
                 resp = {
                     result: 0,
