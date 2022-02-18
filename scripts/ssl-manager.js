@@ -126,8 +126,8 @@ function SSLManager(config) {
     me.install = function (isUpdate) {
         var resp;
 
-        resp = me.checkClustering;
-        api.marketplace.console.WriteLog("checkClustering - resp -> " + resp);
+        resp = me.checkClustering();
+        api.marketplace.console.WriteLog("checkClustering2 - resp -> " + resp);
         if (resp.skipInstall) return { result: 0 };
 
         resp = me.exec([
