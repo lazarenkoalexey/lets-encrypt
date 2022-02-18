@@ -127,8 +127,7 @@ function SSLManager(config) {
         var resp;
 
         resp = me.exec(me.checkClustering);
-        if (resp) return resp;
-        
+        api.marketplace.console.WrteLog("checkClustering - resp -> " + resp);
         if (resp.skipInstall) return { result: 0 };
 
         resp = me.exec([
@@ -147,6 +146,11 @@ function SSLManager(config) {
             me.exec(me.scheduleAutoUpdate);
             resp = me.exec(me.deploy);
         }
+        //
+        // if (config.cluster) {
+        //     resp = me.exec(me.createLockFile);
+        //     if (resp.result !=0) return resp;
+        // }
 
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
@@ -837,6 +841,10 @@ function SSLManager(config) {
 
         return !!String(resp.out) == "true";
     };
+
+    // me.createLockFile =function () {
+    //     return me.cmd("touch " + KEYS + config.appId + ".lock");
+    // };
 
     me.attachExtIpToGroupNodes = function(group) {
         var nodes = nodeManager.getNodes(),
