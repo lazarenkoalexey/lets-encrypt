@@ -46,6 +46,7 @@ function SSLManager(config) {
         INSTALL_LE_SCRIPT = "install-le.sh",
         AUTO_UPDATE_SCRIPT = "auto-update-ssl-cert.sh",
         SETTINGS_PATH = "opt/letsencrypt/settings",
+        KEYS = "/var/lib/jelastic/keys/",
         DECREASE_UPDATE_DAYS = 10,
         REMOVE_UPDATE_DAYS = 90,
         SUPPORT_EMAIL = "support@jelastic.com",
@@ -123,7 +124,14 @@ function SSLManager(config) {
     };
 
     me.install = function (isUpdate) {
-        var resp = me.exec([
+        var resp;
+
+        resp = me.exec(me.checkClustering);
+        if (resp) return resp;
+        
+        if (resp.skipInstall) return { result: 0 };
+
+        resp = me.exec([
             [ me.initCustomConfigs ],
             [ me.initAddOnExtIp, config.withExtIp ],
             [ me.initWebrootMethod, config.webroot ],
@@ -613,8 +621,8 @@ function SSLManager(config) {
         return me.getFileUrl("configs/" + configName);
     };
 
-    me.initCustomConfigs = function initCustomConfigs() {
-        var CUSTOM_CONFIG = nodeManager.getCustomSettingsPath(),
+    me.initCustomConfigs = function initCustomConfigs(path) {
+        var CUSTOM_CONFIG = path || nodeManager.getCustomSettingsPath(),
             properties = new java.util.Properties(),
             stringReader,
             propNames,
@@ -801,6 +809,33 @@ function SSLManager(config) {
         }
 
         return { result : 0 };
+    };
+
+    me.checkClustering = function () {
+        var resp;
+
+        resp = me.initCustomConfigs(KEYS + config.appId + ".lock");
+        if (resp.result != 0) return resp;
+
+        if (config.cluster) {
+            if (me.isLockFileExists()) {
+                resp = {
+                    result: 0,
+                    skipInstall: true
+                }
+            }
+        }
+
+        return resp;
+    };
+
+    me.isLockFileExists =function () {
+        var resp;
+
+        resp = me.cmd("[[ -f \"" + KEYS + config.appId + ".lock" + "\" ]] && echo true || echo false");
+        if (resp.result != 0) return resp;
+
+        return !!String(resp.out) == "true";
     };
 
     me.attachExtIpToGroupNodes = function(group) {
