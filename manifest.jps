@@ -110,7 +110,8 @@ onInstall:
       undeployHookType: ${settings.undeployHookType:}
       test: ${settings.test:}
   - installScript
-  - checkClustering
+  - checkClustering:
+      app_id: letsencrypt-ssl-addon
 
 onUninstall:
   - callScript:
@@ -196,23 +197,25 @@ actions:
       if (config.cluster) config.cluster = String(config.cluster) != "false";
 
       if (config.cluster) {
-        secondEnvName = ("${env.name}" == "${response.envName1") ? "${response.envName2}" : "${response.envName1}";
+        secondEnvName = ("${env.name}" == config.envName1) ? config.envName2 : config.envName1;
 
+        
         return {
           result: 0,
-          onAfterReturn: [{
-            action: "createLockFile",
-            params: {
-              envName: secondEnvName,
-              id: "${this.app_id}"
+          onAfterReturn: [
+            {
+              "createLockFile": {
+                "envName": secondEnvName,
+                "app_id": "${this.app_id}"
+              }
+            },
+            {
+              "installSkippedAddon": {
+                "envName": secondEnvName,
+                "jps": "https://github.com/lazarenkoalexey/lets-encrypt/blob/skipped/manifest.jps"
+              }
             }
-          },{
-            action: "installSkippedAddon",
-            params: {
-              envName: secondEnvName,
-              jps: "https://github.com/lazarenkoalexey/lets-encrypt/blob/skipped/manifest.jps"
-            }
-          }]
+          ]
         }
       }
 
@@ -222,31 +225,31 @@ actions:
 
   createLockFile:
     script: |
-      return return api.env.control.ExecCmdByGroup({
-          envName: "${this.envName}",
-          session: session,
-          nodeGroup: "cp",
-          commandList: [{"command": "touch /var/lib/jelastic/keys/" + "${this.app_id}.lock"}]
-        });
+      return api.env.control.ExecCmdByGroup({
+        envName: "${this.envName}",
+        session: session,
+        nodeGroup: "cp",
+        commandList: [{"command": "touch /var/lib/jelastic/keys/${this.app_id}.lock"}]
+      });
 
   installSkippedAddon:
     script: |
       return api.marketplace.jps.Install({
         appid: appid,
         session: session,
-        jps: "${this.jps"} || "https://github.com/jelastic-jps/lets-encrypt/blob/master/manifest.jps",
+        jps: "${this.jps}" || "https://github.com/jelastic-jps/lets-encrypt/blob/master/manifest.jps",
         envName: "${this.envName}",
         nodeGroup: "cp",
         settings: {
           customDomains: "${settings.customDomains}",
-          nodeGroup: ${globals.nodeGroup}
-          deployHookType: ${globals.deployHookType}
-          undeployHookType: ${globals.undeployHookType}
-          withExtIp: ${globals.withExtIp}
-          webroot: ${globals.webroot}
-          webrootPath: ${globals.webrootPath}
-          fallbackToX1: ${globals.fallbackToX1}
-          test: ${globals.test}
+          nodeGroup: "${globals.nodeGroup}",
+          deployHookType: "${globals.deployHookType}",
+          undeployHookType: "${globals.undeployHookType}",
+          withExtIp: "${globals.withExtIp}",
+          webroot: "${globals.webroot}",
+          webrootPath: "${globals.webrootPath}",
+          fallbackToX1: "${globals.fallbackToX1}",
+          test: "${globals.test}"
         }
       });
 
