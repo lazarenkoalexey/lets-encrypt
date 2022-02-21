@@ -222,7 +222,7 @@ actions:
           envName: "${env.name}",
           session: session,
           nodeGroup: "cp",
-          commandList: [{"command": "[[ -f \"" + KEYS + "letsencrypt-ssl-addon.lock\" ]] && echo true || echo false"}]
+          commandList: [{"command": "[[ -f \"" + KEYS + "${this.app_id}.lock\" ]] && echo true || echo false"}]
         });
         if (resp.result != 0) return resp;
         
