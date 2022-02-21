@@ -843,8 +843,9 @@ function SSLManager(config) {
         resp = me.cmd("[[ -f \"" + KEYS + config.appId + ".lock" + "\" ]] && echo true || echo false");
         api.marketplace.console.WriteLog("isLockFileExists resp" + resp);
         if (resp.result != 0) return resp;
+        api.marketplace.console.WriteLog("isLockFileExists resp.responses[0].out" + resp.responses[0].out);
 
-        return !!String(resp.out) == "true";
+        return !!String(resp.responses[0].out) == "true";
     };
 
     // me.createLockFile =function () {
