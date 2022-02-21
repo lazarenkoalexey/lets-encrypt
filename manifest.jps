@@ -174,18 +174,29 @@ actions:
   checkClustering:
     script: |
       var UPDATE = "update",
+        KEYS = "/var/lib/jelastic/keys/",
         secondEnvName,
         config = {},
         envApid,
         resp,
         obj;
+        
+      resp = api.env.control.ExecCmdByGroup({
+        envName: "${env.name}",
+        session: session,
+        nodeGroup: "cp",
+        commandList: [{"command": "[[ -f \"" + KEYS + "letsencrypt-ssl-addon.lock\" ]] && echo true || echo false"}]
+      });
+      if (resp.result != 0) return resp;
+      if (resp.responses[0].out == "true") return {result: 0}
 
       resp = api.env.control.ExecCmdByGroup({
         envName: "${env.name}",
         session: session,
         nodeGroup: "cp",
-        commandList: [{"command": "cat /var/lib/jelastic/keys/clustering"}]
+        commandList: [{"command": "cat " + KEYS + "clustering"}]
       });
+      if (resp.result != 0) return resp;
 
       text = resp.responses[0].out.split("\n");
 
