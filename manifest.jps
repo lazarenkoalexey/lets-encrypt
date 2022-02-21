@@ -308,8 +308,6 @@ actions:
         nodeType,
         resp;
         
-      isConfigure = !!(config.parentAction == CONFIGURE);
-      
       resp = api.env.control.GetEnvInfo("${this.envName}", session);
       if (resp.result != 0) return resp;
       
