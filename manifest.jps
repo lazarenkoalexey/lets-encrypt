@@ -190,7 +190,7 @@ actions:
     script: |
       var UPDATE = "update",
         KEYS = "/var/lib/jelastic/keys/",
-        action = "${this.action}",
+        action = "${this.action:}",
         secondEnvName,
         config = {},
         isLockEnv,
