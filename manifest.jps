@@ -243,9 +243,9 @@ actions:
               ]
             }
           }
-        }
+        } 
 
-        if (!action) {
+        if (!action && !isLockEnv) {
           return {
             result: 0,
             onAfterReturn: [
