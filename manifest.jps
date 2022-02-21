@@ -243,26 +243,26 @@ actions:
               ]
             }
           }
-          return {result: 0}
         }
 
-        
-        return {
-          result: 0,
-          onAfterReturn: [
-            {
-              createLockFile: {
-                envName: secondEnvName,
-                app_id: "${this.app_id}"
+        if (!action) {
+          return {
+            result: 0,
+            onAfterReturn: [
+              {
+                createLockFile: {
+                  envName: secondEnvName,
+                  app_id: "${this.app_id}"
+                }
+              },
+              {
+                installSkippedAddon: {
+                  envName: secondEnvName,
+                  jps: "https://github.com/lazarenkoalexey/lets-encrypt/blob/skipped/manifest.jps"
+                }
               }
-            },
-            {
-              installSkippedAddon: {
-                envName: secondEnvName,
-                jps: "https://github.com/lazarenkoalexey/lets-encrypt/blob/skipped/manifest.jps"
-              }
-            }
-          ]
+            ]
+          }
         }
       }
 
