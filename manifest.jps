@@ -173,7 +173,7 @@ actions:
         action: auto-update
     - checkClustering:
         app_id: letsencrypt-ssl-addon
-        action: auto-update
+        action: update
 
   configure:
     - installScript
