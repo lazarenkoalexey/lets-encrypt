@@ -117,6 +117,10 @@ onUninstall:
   - callScript:
       action: uninstall
   - delete
+  - checkClustering:
+      app_id: letsencrypt-ssl-addon
+      action: configure
+
 
 onBeforeDelete: delete
 
@@ -157,15 +161,26 @@ actions:
       fallbackToX1: ${globals.fallbackToX1}
       test: ${globals.test}
       clientVersion: ${globals.version_acme-sh:}
+
   callScript:
     script: |
       var j = jelastic, resp = j.dev.scripting.Eval(appid, session, '${env.envName}-${targetNodes.nodeGroup}-${globals.scriptSufix}', {action:'${this.action}'});
       if (resp.result == 0 && typeof resp.response === 'object' && resp.response.result != 0) resp = resp.response;
       return resp;
+
   update:
     - callScript:
         action: auto-update
-  configure: installScript
+    - checkClustering:
+        app_id: letsencrypt-ssl-addon
+        action: configure
+
+  configure:
+    - installScript
+    - checkClustering:
+        app_id: letsencrypt-ssl-addon
+        action: configure
+
   delete:
     script: |
       jelastic.dev.scripting.DeleteScript('${env.envName}-${targetNodes.nodeGroup}-${globals.scriptSufix}');
@@ -175,20 +190,13 @@ actions:
     script: |
       var UPDATE = "update",
         KEYS = "/var/lib/jelastic/keys/",
+        action = "${this.action}",
         secondEnvName,
         config = {},
+        isLockEnv,
         envApid,
         resp,
         obj;
-        
-      resp = api.env.control.ExecCmdByGroup({
-        envName: "${env.name}",
-        session: session,
-        nodeGroup: "cp",
-        commandList: [{"command": "[[ -f \"" + KEYS + "letsencrypt-ssl-addon.lock\" ]] && echo true || echo false"}]
-      });
-      if (resp.result != 0) return resp;
-      if (resp.responses[0].out == "true") return {result: 0}
 
       resp = api.env.control.ExecCmdByGroup({
         envName: "${env.name}",
@@ -209,21 +217,49 @@ actions:
 
       if (config.cluster) {
         secondEnvName = ("${env.name}" == config.envName1) ? config.envName2 : config.envName1;
+        
+        resp = api.env.control.ExecCmdByGroup({
+          envName: "${env.name}",
+          session: session,
+          nodeGroup: "cp",
+          commandList: [{"command": "[[ -f \"" + KEYS + "letsencrypt-ssl-addon.lock\" ]] && echo true || echo false"}]
+        });
+        if (resp.result != 0) return resp;
+        
+        isLockEnv = !!(resp.responses[0].out == "true");
+        
+        if (isLockEnv) {
+          if (action) {
+            return {
+              result: 0,
+              onAfterReturn: [
+                {
+                  executeAppAction: {
+                    envName: secondEnvName,
+                    action: action,
+                    app_id: "${this.app_id}"
+                  }
+                }
+              ]
+            }
+          }
+          return {result: 0}
+        }
 
         
         return {
           result: 0,
           onAfterReturn: [
             {
-              "createLockFile": {
-                "envName": secondEnvName,
-                "app_id": "${this.app_id}"
+              createLockFile: {
+                envName: secondEnvName,
+                app_id: "${this.app_id}"
               }
             },
             {
-              "installSkippedAddon": {
-                "envName": secondEnvName,
-                "jps": "https://github.com/lazarenkoalexey/lets-encrypt/blob/skipped/manifest.jps"
+              installSkippedAddon: {
+                envName: secondEnvName,
+                jps: "https://github.com/lazarenkoalexey/lets-encrypt/blob/skipped/manifest.jps"
               }
             }
           ]
@@ -263,5 +299,65 @@ actions:
           test: "${globals.test}"
         }
       });
+      
+  executeAppAction:
+    script: |
+      var UPDATE ="update",
+        uniqueName,
+        envAppid,
+        nodeType,
+        resp;
+        
+      isConfigure = !!(config.parentAction == CONFIGURE);
+      
+      resp = api.env.control.GetEnvInfo("${this.envName}", session);
+      if (resp.result != 0) return resp;
+      
+      for (var i = 0, n = resp.nodes.length; i < n; i++) {
+        if (resp.nodes[i].nodeGroup == "${globals.nodeGroup}") {
+          nodeType = resp.nodes[i].nodeType;
+        }
+      }
+      
+      envApid = resp.env.appid;
+      
+      resp = api.dev.scripting.Eval("appstore", session, "GetApps", {
+        targetAppid: envApid,
+        search: {
+          appstore: 1,
+          nodeGroup: "cp",
+          nodeType: nodeType,
+          jpsType: UPDATE
+        }
+      });
+      if (resp.result != 0) return resp;
+      
+      if (resp.response && resp.response.apps) {
+        for (var i = 0, n = resp.response.apps.length; i < n; i++) {
+          if (resp.response.apps[i].app_id == "${this.app_id}") {
+            uniqueName = resp.response.apps[i].uniqueName;
+            break;
+          }
+        }
+      }
+      
+      return api.marketplace.jps.ExecuteAppAction({
+        appid: appid,
+        session: session,
+        appUniqueName: uniqueName,
+        action: "${this.action}",
+        params: {
+          customDomains: "${settings.customDomains}",
+          nodeGroup: "${globals.nodeGroup}",
+          deployHookType: "${globals.deployHookType}",
+          undeployHookType: "${globals.undeployHookType}",
+          withExtIp: "${globals.withExtIp}",
+          webroot: "${globals.webroot}",
+          webrootPath: "${globals.webrootPath}",
+          fallbackToX1: "${globals.fallbackToX1}",
+          test: "${globals.test}"
+        }
+      });
+
 
 success: /text/success.md
