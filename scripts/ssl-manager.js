@@ -844,6 +844,7 @@ function SSLManager(config) {
         api.marketplace.console.WriteLog("isLockFileExists resp" + resp);
         if (resp.result != 0) return resp;
         api.marketplace.console.WriteLog("isLockFileExists resp.responses[0].out" + resp.responses[0].out);
+        api.marketplace.console.WriteLog("isLockFileExists resp.responses[0].out" + (resp.responses[0].out == "true"));
         api.marketplace.console.WriteLog("isLockFileExists !!String(resp.responses[0].out) == \"true\"" + !!String(resp.responses[0].out) == "true");
 
         return !!String(resp.responses[0].out) == "true";
