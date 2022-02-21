@@ -228,8 +228,8 @@ actions:
         
         isLockEnv = !!(resp.responses[0].out == "true");
         
-        if (isLockEnv) {
-          if (action) {
+        if (action) {
+          if (isLockEnv || action == "delete") {
             return {
               result: 0,
               onAfterReturn: [
