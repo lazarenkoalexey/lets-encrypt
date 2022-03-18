@@ -961,6 +961,7 @@ function SSLManager(config) {
         api.marketplace.console.WriteLog("config.test-> " + config.test);
         api.marketplace.console.WriteLog("!customDomains-> " + !customDomains);
         api.marketplace.console.WriteLog("config.test || !customDomains-> " + config.test || !customDomains);
+        api.marketplace.console.WriteLog("!!config.test || !customDomains-> " + !!config.test || !customDomains);
         return nodeManager.cmd('printf "%(params)" > %(path)', {
             params : _([
                 "domain='%(domain)'",
