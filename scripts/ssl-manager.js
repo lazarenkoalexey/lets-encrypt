@@ -957,6 +957,11 @@ function SSLManager(config) {
             customDomains = me.parseDomains(customDomains).join(" ");
         }
 
+        log("config.test->" + config.test);
+        log("!!config.test->" + !!config.test);
+        log("customDomains->" + customDomains);
+        log("!customDomains->" + !customDomains);
+        log("!!config.test || !customDomains->" + (!!config.test || !customDomains));
         return nodeManager.cmd('printf "%(params)" > %(path)', {
             params : _([
                 "domain='%(domain)'",
