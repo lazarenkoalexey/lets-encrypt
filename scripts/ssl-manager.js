@@ -513,6 +513,12 @@ function SSLManager(config) {
     me.addAutoUpdateTask = function addAutoUpdateTask() {
         me.logAction("AddLEAutoUpdateTask");
 
+        return api.marketplace.installation.ExecuteAction({
+            appid: appid,
+            session: session,
+            appUniqueName: "c18af424-f715-4107-a3cc-56a318633439",
+            action: "update"
+        });
         return jelastic.utils.scheduler.AddTask({
             appid: appid,
             session: session,
