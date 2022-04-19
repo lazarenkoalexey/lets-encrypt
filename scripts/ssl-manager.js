@@ -513,8 +513,8 @@ function SSLManager(config) {
     me.addAutoUpdateTask = function addAutoUpdateTask() {
         me.logAction("AddLEAutoUpdateTask");
 
-        api.marketplace.console.WriteLog("before execute");
-        return api.dev.scripting.Eval("execute");
+        api.marketplace.console.WriteLog("before execute22");
+        return api.dev.scripting.Eval(appid, session, "execute");
         return jelastic.utils.scheduler.AddTask({
             appid: appid,
             session: session,
