@@ -634,7 +634,9 @@ function SSLManager(config) {
 
             while (propNames.hasMoreElements()) {
                 propName = propNames.nextElement().toString();
+                api.marketplace.console.WriteLog("propName->" + propName);
                 config[propName] = config[propName] || String(properties.getProperty(propName));
+                api.marketplace.console.WriteLog("config[propName]->" + config[propName]);
             }
         }
 
