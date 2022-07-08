@@ -433,6 +433,7 @@ function SSLManager(config) {
     };
 
     me.autoUpdate = function () {
+        api.marketplace.console.WriteLog("in autoUpdate->");
         var resp;
 
         if (getPlatformVersion() < "4.9.5") {
