@@ -439,8 +439,7 @@ function SSLManager(config) {
         if (getPlatformVersion() < "4.9.5") {
             return me.exec(me.sendEmail, "Action Required", "html/update-required.html");
         }
-
-        return "text";
+        
         if (!config.isTask) {
             me.logAction("StartUpdateLEFromContainer");
 
