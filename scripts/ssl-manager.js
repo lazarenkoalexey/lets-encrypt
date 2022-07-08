@@ -440,7 +440,6 @@ function SSLManager(config) {
             return me.exec(me.sendEmail, "Action Required", "html/update-required.html");
         }
 
-        return "text";
         if (!config.isTask) {
             me.logAction("StartUpdateLEFromContainer");
 
