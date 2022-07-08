@@ -115,6 +115,7 @@ function SSLManager(config) {
         }
 
         me.init();
+        return "after init";
 
         return actions[action].call(me);
     };
