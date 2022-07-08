@@ -896,10 +896,17 @@ function SSLManager(config) {
             resp;
 
         scriptingScriptName = scriptingScriptName || scriptName;
-
+        
         try {
             api.marketplace.console.WriteLog("scriptingScriptName->" + scriptingScriptName);
             api.marketplace.console.WriteLog("scriptName->" + scriptName);
+            return {
+                scriptingScriptName: scriptingScriptName,
+                scriptName: scriptName,
+                getScriptBody: me.getScriptBody(scriptName),
+                getScript: getScript(scriptingScriptName)
+            }
+            
             resp = me.getScriptBody(scriptName);
             api.marketplace.console.WriteLog("getScriptBody resp->" + resp);
             if (resp.result != 0) return resp;
