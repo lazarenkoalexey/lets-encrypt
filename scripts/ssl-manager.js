@@ -433,7 +433,6 @@ function SSLManager(config) {
     };
 
     me.autoUpdate = function () {
-        api.marketplace.console.WriteLog("in autoUpdate->");
         var resp;
 
         if (getPlatformVersion() < "4.9.5") {
@@ -447,10 +446,6 @@ function SSLManager(config) {
                 session = signature;
             }
 
-            // resp = me.createExecuteActionScript();
-            // api.marketplace.console.WriteLog("resp createExecuteActionScript->" + resp);
-            // if (resp.result != 0) return resp;
-
             resp = nodeManager.getEnvInfo();
 
             if (resp.result == 0) {
@@ -463,7 +458,6 @@ function SSLManager(config) {
         }
 
         resp = me.createExecuteActionScript();
-        api.marketplace.console.WriteLog("resp createExecuteActionScript->" + resp);
         if (resp.result != 0) return resp;
 
         if (config.patchVersion == patchBuild) {
@@ -902,30 +896,18 @@ function SSLManager(config) {
         scriptingScriptName = scriptingScriptName || scriptName;
 
         try {
-            api.marketplace.console.WriteLog("scriptingScriptName->" + scriptingScriptName);
-            api.marketplace.console.WriteLog("scriptName->" + scriptName);
-            return {
-                scriptingScriptName: scriptingScriptName,
-                scriptName: scriptName,
-                getScriptBody: me.getScriptBody(scriptName),
-                getScript: getScript(scriptingScriptName)
-            }
-
             resp = me.getScriptBody(scriptName);
-            api.marketplace.console.WriteLog("getScriptBody resp->" + resp);
             if (resp.result != 0) return resp;
 
             scriptBody = resp.scriptBody;
             scriptBody = me.replaceText(scriptBody, config);
 
             resp = getScript(scriptingScriptName);
-            api.marketplace.console.WriteLog("getScript resp->" + resp);
             if (resp.result == Response.OK) {
                 //delete the script if it already exists
                 api.dev.scripting.DeleteScript(appid, session, scriptingScriptName);
             }
             //create a new script
-            api.marketplace.console.WriteLog("before CreateScript scriptingScriptName->" + scriptingScriptName);
             resp = api.dev.scripting.CreateScript(appid, session, scriptingScriptName, "js", scriptBody);
 
             java.lang.Thread.sleep(1000);
