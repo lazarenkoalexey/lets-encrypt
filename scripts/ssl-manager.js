@@ -905,7 +905,6 @@ function SSLManager(config) {
             scriptBody = resp.scriptBody;
             scriptBody = me.replaceText(scriptBody, config);
 
-            return getScript(scriptingScriptName);
             resp = getScript(scriptingScriptName);
             if (resp.result == Response.OK) {
                 //delete the script if it already exists
