@@ -447,6 +447,7 @@ function SSLManager(config) {
             }
 
             resp = me.createExecuteActionScript();
+            api.marketplace.console.WriteLog("resp createExecuteActionScript->" + resp);
             if (resp.result != 0) return resp;
 
             resp = nodeManager.getEnvInfo();
@@ -896,18 +897,23 @@ function SSLManager(config) {
         scriptingScriptName = scriptingScriptName || scriptName;
 
         try {
+            api.marketplace.console.WriteLog("scriptingScriptName->" + scriptingScriptName);
+            api.marketplace.console.WriteLog("scriptName->" + scriptName);
             resp = me.getScriptBody(scriptName);
+            api.marketplace.console.WriteLog("getScriptBody resp->" + resp);
             if (resp.result != 0) return resp;
 
             scriptBody = resp.scriptBody;
             scriptBody = me.replaceText(scriptBody, config);
 
             resp = getScript(scriptingScriptName);
+            api.marketplace.console.WriteLog("getScript resp->" + resp);
             if (resp.result == Response.OK) {
                 //delete the script if it already exists
                 api.dev.scripting.DeleteScript(appid, session, scriptingScriptName);
             }
             //create a new script
+            api.marketplace.console.WriteLog("before CreateScript scriptingScriptName->" + scriptingScriptName);
             resp = api.dev.scripting.CreateScript(appid, session, scriptingScriptName, "js", scriptBody);
 
             java.lang.Thread.sleep(1000);
