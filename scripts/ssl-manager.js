@@ -447,9 +447,9 @@ function SSLManager(config) {
                 session = signature;
             }
 
-            resp = me.createExecuteActionScript();
-            api.marketplace.console.WriteLog("resp createExecuteActionScript->" + resp);
-            if (resp.result != 0) return resp;
+            // resp = me.createExecuteActionScript();
+            // api.marketplace.console.WriteLog("resp createExecuteActionScript->" + resp);
+            // if (resp.result != 0) return resp;
 
             resp = nodeManager.getEnvInfo();
 
@@ -461,6 +461,10 @@ function SSLManager(config) {
                 return me.checkEnvAccessAndUpdate(resp);
             }
         }
+
+        resp = me.createExecuteActionScript();
+        api.marketplace.console.WriteLog("resp createExecuteActionScript->" + resp);
+        if (resp.result != 0) return resp;
 
         if (config.patchVersion == patchBuild) {
             resp = me.install(true);
@@ -896,7 +900,7 @@ function SSLManager(config) {
             resp;
 
         scriptingScriptName = scriptingScriptName || scriptName;
-        
+
         try {
             api.marketplace.console.WriteLog("scriptingScriptName->" + scriptingScriptName);
             api.marketplace.console.WriteLog("scriptName->" + scriptName);
@@ -906,7 +910,7 @@ function SSLManager(config) {
                 getScriptBody: me.getScriptBody(scriptName),
                 getScript: getScript(scriptingScriptName)
             }
-            
+
             resp = me.getScriptBody(scriptName);
             api.marketplace.console.WriteLog("getScriptBody resp->" + resp);
             if (resp.result != 0) return resp;
