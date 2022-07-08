@@ -1972,7 +1972,7 @@ function SSLManager(config) {
     }
 
     function getScript(name) {
-        return jelastic.dev.scripting.GetScript(name);
+        return jelastic.dev.scripting.GetScript(appid, session, name);
     }
 
     function compareVersions(a, b) {
