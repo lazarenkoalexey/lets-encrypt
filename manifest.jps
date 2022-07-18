@@ -110,7 +110,7 @@ onInstall:
       deployHookType: ${settings.deployHookType:}
       undeployHook: ${settings.undeployHook:}
       undeployHookType: ${settings.undeployHookType:}
-      test: ${settings.test:}
+      test: ${settings.test:true}
   - checkClustering:
       nodeGroup: ${globals.nodeGroup}
       app_id: ${globals.app_id}
@@ -183,7 +183,7 @@ actions:
       webroot: ${globals.webroot}
       webrootPath: ${globals.webrootPath}
       fallbackToX1: ${globals.fallbackToX1}
-      test: ${globals.test:true}
+      test: ${globals.test}
       clientVersion: ${globals.version_acme-sh:}
   
   callScript:
@@ -247,7 +247,7 @@ actions:
       webroot: ${globals.webroot}
       webrootPath: ${globals.webrootPath}
       fallbackToX1: ${globals.fallbackToX1}
-      test: ${globals.test:true}
+      test: ${globals.test}
       
   createScript:
     script: |
