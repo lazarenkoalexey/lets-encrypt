@@ -183,7 +183,7 @@ actions:
       webroot: ${globals.webroot}
       webrootPath: ${globals.webrootPath}
       fallbackToX1: ${globals.fallbackToX1}
-      test: ${globals.test}
+      test: ${globals.test:true}
       clientVersion: ${globals.version_acme-sh:}
   
   callScript:
@@ -247,7 +247,7 @@ actions:
       webroot: ${globals.webroot}
       webrootPath: ${globals.webrootPath}
       fallbackToX1: ${globals.fallbackToX1}
-      test: ${globals.test}
+      test: ${globals.test:true}
       
   createScript:
     script: |
