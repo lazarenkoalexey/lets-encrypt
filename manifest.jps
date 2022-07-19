@@ -118,6 +118,7 @@ onInstall:
       - if (!globals.isOppositeExecuted):
           - markExecutedEnvFile:
               nodeGroup: ${targetNodes.nodeGroup}
+              app_id: ${globals.app_id}
           - if (globals.isSecondaryEnv):
               installLE:
                 envName: ${globals.primaryEnvName}
@@ -143,6 +144,7 @@ onUninstall:
   - if (globals.cluster):
       - markExecutedEnvFile:
           nodeGroup: ${targetNodes.nodeGroup}
+          app_id: ${globals.app_id}
       - if (!globals.isOppositeExecuted):
           - if (globals.isSecondaryEnv):
               - executeAction:
