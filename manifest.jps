@@ -110,7 +110,7 @@ onInstall:
       deployHookType: ${settings.deployHookType:}
       undeployHook: ${settings.undeployHook:}
       undeployHookType: ${settings.undeployHookType:}
-      test: ${settings.test:}
+      test: ${settings.test:true}
   - checkClustering:
       nodeGroup: ${globals.nodeGroup}
       app_id: ${globals.app_id}
