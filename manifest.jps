@@ -243,6 +243,7 @@ actions:
                   app_id: ${globals.app_id}
             - removeExecutedEnvFile:
                 nodeGroup: ${targetNodes.nodeGroup}
+                app_id: ${globals.app_id}
         - if (globals.isSecondaryEnv):
             script: |
               return {result: 0}
