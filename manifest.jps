@@ -48,7 +48,7 @@ targetNodes:
     - jenkins2
 
 homepage: https://github.com/jelastic-jps/lets-encrypt
-baseUrl: https://raw.githubusercontent.com/lazarenkoalexey/lets-encrypt/multi2
+baseUrl: https://raw.githubusercontent.com/lazarenkoalexey/lets-encrypt/multi
 logo: images/letsencrypt.png
 
 description:
@@ -110,7 +110,7 @@ onInstall:
       deployHookType: ${settings.deployHookType:}
       undeployHook: ${settings.undeployHook:}
       undeployHookType: ${settings.undeployHookType:}
-      test: ${settings.test:true}
+      test: ${settings.test:}
   - checkClustering:
       nodeGroup: ${globals.nodeGroup}
       app_id: ${globals.app_id}
@@ -225,12 +225,27 @@ actions:
         nodeGroup: ${globals.nodeGroup}
         app_id: letsencrypt-ssl-addon
     - if (globals.cluster):
+        - if (!globals.isOppositeExecuted):
+            - markExecutedEnvFile:
+                nodeGroup: ${targetNodes.nodeGroup}
+                app_id: ${globals.app_id}
+            - if (globals.isSecondaryEnv):
+                executeAction:
+                  envName: ${globals.primaryEnvName}
+                  nodeGroup: ${globals.nodeGroup}
+                  action: configure
+                  app_id: ${globals.app_id}
+            - else:
+                executeAction:
+                  envName: ${globals.secondaryEnvName}
+                  nodeGroup: ${globals.nodeGroup}
+                  action: configure
+                  app_id: ${globals.app_id}
+            - removeExecutedEnvFile:
+                nodeGroup: ${targetNodes.nodeGroup}
         - if (globals.isSecondaryEnv):
-            executeAction:
-              envName: ${globals.primaryEnvName}
-              nodeGroup: ${globals.nodeGroup}
-              action: update
-              app_id: ${globals.app_id}
+            script: |
+              return {result: 0}
     - installScript
   
   delete:
@@ -243,7 +258,7 @@ actions:
     envName: ${this.envName}
     nodeGroup: ${globals.nodeGroup}
     settings:
-      customDomains: ''
+      customDomains: ${settings.customDomains}
       nodeGroup: ${globals.nodeGroup}
       deployHookType: ${globals.deployHookType}
       undeployHookType: ${globals.undeployHookType}
