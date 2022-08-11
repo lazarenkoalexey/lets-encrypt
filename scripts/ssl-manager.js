@@ -1000,7 +1000,7 @@ function SSLManager(config) {
             customDomains = me.parseDomains(customDomains).join(" ");
         }
 
-        log("config.test->" + config.test);
+        log("config.test0->" + config.test);
         log("!!config.test->" + !!config.test);
         return nodeManager.cmd('printf "%(params)" > %(path)', {
             params : _([
@@ -1023,7 +1023,7 @@ function SSLManager(config) {
                 appid : config.envAppid || "",
                 baseDir : config.baseDir,
                 appdomain : envDomain || "",
-                test : config.test || !customDomains,
+                test : config.test ? me.initBoolValue(config.test) : !customDomains,
                 primarydomain: primaryDomain,
                 letsEncryptEnv : config.letsEncryptEnv || "",
                 withExtIp : config.withExtIp,
