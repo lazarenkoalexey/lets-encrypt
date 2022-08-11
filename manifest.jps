@@ -134,8 +134,9 @@ onInstall:
               app_id: ${globals.app_id}
       - if (globals.isSecondaryEnv):
           script: |
-            return {result: 0}   
-  - installScript
+            return {result: 0}  
+  - else:
+      installScript
     
 
 onUninstall:
