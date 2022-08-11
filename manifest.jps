@@ -110,16 +110,15 @@ onInstall:
       deployHookType: ${settings.deployHookType:}
       undeployHook: ${settings.undeployHook:}
       undeployHookType: ${settings.undeployHookType:}
-      test: ${settings.test:true}
+      test: ${settings.test:}
   - checkClustering:
       nodeGroup: ${globals.nodeGroup}
       app_id: ${globals.app_id}
   - if (globals.cluster):
-      - if (globals.isSecondaryEnv):
-          - createFile:
-              envName: ${globals.secondaryEnvName}
-              nodeGroup: ${globals.nodeGroup}
-              app_id: ${globals.app_id}
+      - createFile:
+          envName: ${globals.secondaryEnvName}
+          nodeGroup: ${globals.nodeGroup}
+          app_id: ${globals.app_id}
       - if (!globals.isOppositeExecuted):
           - markExecutedEnvFile:
               nodeGroup: ${targetNodes.nodeGroup}
