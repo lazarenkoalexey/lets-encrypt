@@ -135,6 +135,8 @@ onInstall:
       - if (globals.isSecondaryEnv):
           script: |
             return {result: 0}  
+      - else:
+          installScript
   - else:
       installScript
     
