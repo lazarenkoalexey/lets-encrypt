@@ -150,16 +150,18 @@ function SSLManager(config) {
         api.marketplace.console.WriteLog("resp-->" + resp);
         return {
             result: 0,
-            "onAfterReturn": {
+            "onAfterReturn": [{
+                    "setGlobals": { 
+                        skippedDomainsText: resp.skippedDomains || "" 
+                    }
+                },{
                 "return": {
                     type: "success",
                     data: {
-                        skippedDomains: me.getSkippedDomains(),
-                        skippedDomainsText: resp.skippedDomains
+                        skippedDomains: me.getSkippedDomains()
                     }
                 }
-            },
-            skippedDomainsText: resp.skippedDomains
+            }]
         }
     };
 
