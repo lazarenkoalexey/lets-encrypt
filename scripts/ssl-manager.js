@@ -569,7 +569,7 @@ function SSLManager(config) {
     };
 
     me.createScriptAndInstall = function createInstallationScript() {
-        return me.exec([
+        var resp =  me.exec([
             [ me.initCustomConfigs ],
             [ me.initAddOnExtIp, config.withExtIp ],
             [ me.initWebrootMethod, config.webroot ],
@@ -580,6 +580,9 @@ function SSLManager(config) {
             [ me.createLEScript ],
             [ me.evalScript, INSTALL ]
         ]);
+        
+        api.marketplace.console.WriteLog("resp -a> " + resp);
+        return resp;
     };
 
     me.parseDomains = function (domains) {
