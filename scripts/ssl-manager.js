@@ -584,8 +584,8 @@ function SSLManager(config) {
         ]);
         if (resp.result != 0) return resp;
 
-        api.marketplace.console.WriteLog("resp -aaaaaa> " + resp);
-        return resp;
+        api.marketplace.console.WriteLog("resp.response -aaaaaa> " + resp.response);
+        return resp.response;
     };
 
     me.parseDomains = function (domains) {
