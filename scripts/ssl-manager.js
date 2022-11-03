@@ -158,7 +158,8 @@ function SSLManager(config) {
                         skippedDomainsText: resp.skippedDomains
                     }
                 }
-            }
+            },
+            skippedDomainsText: resp.skippedDomains
         }
     };
 
