@@ -580,9 +580,10 @@ function SSLManager(config) {
             [ me.createLEScript ],
             [ me.evalScript, INSTALL ]
         ]);
-        
-        api.marketplace.console.WriteLog("resp -a> " + resp);
-        return resp;
+        if (resp.result != 0) return resp;
+
+        api.marketplace.console.WriteLog("resp -aa> " + resp);
+        return resp.response;
     };
 
     me.parseDomains = function (domains) {
