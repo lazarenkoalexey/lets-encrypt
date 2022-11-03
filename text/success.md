@@ -3,10 +3,10 @@ One month before expiration the system will automatically request the certificat
 whilst you'll get the appropriate email notification.  
 
 To perform update manually at any time, use the **Update Now** button at the add-on’s panel.  
-${response.response.skippedDomains}
-${response.data.skippedDomains}
-${response.data.skippedDomainsText}
-${response.response.skippedDomainsText}
+${response.response.skippedDomains}  
+${response.data.skippedDomains}  
+${response.data.skippedDomainsText}  
+${response.response.skippedDomainsText}  
 
 Also, the used domain names list can be adjusted later with the **Configure** button.  
 
