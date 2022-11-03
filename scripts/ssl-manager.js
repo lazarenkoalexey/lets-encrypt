@@ -146,13 +146,11 @@ function SSLManager(config) {
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
-        api.marketplace.console.WriteLog("test");
-        api.marketplace.console.WriteLog("resp-->" + resp);
         return {
             result: 0,
             "onAfterReturn": [{
-                    "setGlobals": { 
-                        skippedDomainsText: resp.skippedDomains || "" 
+                    "setGlobals": {
+                        skippedDomainsText: resp.skippedDomains || ""
                     }
                 },{
                 "return": {
@@ -282,7 +280,6 @@ function SSLManager(config) {
         resp = resp.responses ? resp.responses[0] : resp;
         resp = resp.out.replace(/\'/g, "").split("\n");
 
-        api.marketplace.console.WriteLog("resp[1].split(\" \") ->" + resp[1].split(" "))
         me.setCustomDomains(resp[0]);
         me.setSkippedDomains(resp[1].split(" "));
 
@@ -585,8 +582,6 @@ function SSLManager(config) {
             [ me.evalScript, INSTALL ]
         ]);
         if (resp.result != 0) return resp;
-
-        api.marketplace.console.WriteLog("resp.response -aaaaaa> " + resp.response);
         return resp.response;
     };
 
@@ -1499,9 +1494,8 @@ function SSLManager(config) {
             skippedDomains = me.getSkippedDomains(),
             expiredResp;
 
-        api.marketplace.console.WriteLog("skippedDomains-> " + skippedDomains);
         skippedDomains = skippedDomains.join(SEPARATOR);
-        api.marketplace.console.WriteLog("skippedDomains-> " + skippedDomains);
+
         if (resp.result != 0) {
             if (isUpdate) {
                 expiredResp = me.exec(me.checkUpdateExpiration);
@@ -1517,8 +1511,7 @@ function SSLManager(config) {
                 ENVIRONMENT : config.envDomain,
                 ACTION : action,
                 UPDATED_DOMAINS: me.getCustomDomains() ? "<br>Successfully " + action + " custom domains: <b>" + me.formatUpdatedDomains() + "</b>" : "",
-                SKIPPED_DOMAINS: skippedDomains ? "<br>Please note that Let’s Encrypt cannot assign SSL" +
-                    " certificates for the following domain names: <b>" + me.formatDomains(skippedDomains) + "</b>.<br>" + "Login to your domain registrar admin panel and check <a href='https://docs.jelastic.com/custom-domains/#how-to-configure-dns-record' target='_blank'>DNS records</a> for the provided domains. Ensure they point to the correct IP (environment entry point or proxy if CDN or any other external balancer is used). Alternatively, remove invalid custom domains from the <a href='https://jelastic.com/blog/free-ssl-certificates-with-lets-encrypt/'>Let's Encrypt settings</a>." : ""
+                SKIPPED_DOMAINS: skippedDomains ? "<br>Please note that Let’s Encrypt cannot assign SSL certificates for the following domain names: <b>" + me.formatDomains(skippedDomains) + "</b>.<br>" + "Login to your domain registrar admin panel and check <a href='https://docs.jelastic.com/custom-domains/#how-to-configure-dns-record' target='_blank'>DNS records</a> for the provided domains. Ensure they point to the correct IP (environment entry point or proxy if CDN or any other external balancer is used). Alternatively, remove invalid custom domains from the <a href='https://jelastic.com/blog/free-ssl-certificates-with-lets-encrypt/'>Let's Encrypt settings</a>." : ""
             }
         );
     };
