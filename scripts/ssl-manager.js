@@ -154,9 +154,9 @@ function SSLManager(config) {
                 "return": {
                     type: "success",
                     data: {
-                        skippedDomains: me.getSkippedDomains()
-                    },
-                    skippedDomains: resp.skippedDomains
+                        skippedDomains: me.getSkippedDomains(),
+                        skippedDomainsText: resp.skippedDomains
+                    }
                 }
             }
         }
