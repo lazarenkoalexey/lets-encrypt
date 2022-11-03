@@ -278,8 +278,9 @@ function SSLManager(config) {
         resp = resp.responses ? resp.responses[0] : resp;
         resp = resp.out.replace(/\'/g, "").split("\n");
 
+        api.marketplace.console.WriteLog("resp[1].split(\" \") ->" + resp[1].split(" "))
         me.setCustomDomains(resp[0]);
-        me.setSkippedDomains(resp[1]);
+        me.setSkippedDomains(resp[1].split(" "));
 
         return {
             result: 0
