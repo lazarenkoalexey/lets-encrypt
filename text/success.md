@@ -6,6 +6,7 @@ To perform update manually at any time, use the **Update Now** button at the add
 ${response.response.skippedDomains}
 ${response.data.skippedDomains}
 ${response.data.skippedDomainsText}
+${response.response.skippedDomainsText}
 
 Also, the used domain names list can be adjusted later with the **Configure** button.  
 
