@@ -146,6 +146,7 @@ function SSLManager(config) {
         me.exec(me.sendResp, resp, isUpdate);
         me.exec(me.checkSkippedDomainsInSuccess, resp);
 
+        api.marketplace.console.WriteLog("test");
         return {
             result: 0,
             "onAfterReturn": {
