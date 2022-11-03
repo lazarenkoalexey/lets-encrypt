@@ -4,6 +4,7 @@ whilst you'll get the appropriate email notification.
 
 To perform update manually at any time, use the **Update Now** button at the add-on’s panel.  
 ${response.response.skippedDomains}
+${response.skippedDomains}
 
 Also, the used domain names list can be adjusted later with the **Configure** button.  
 
@@ -13,4 +14,3 @@ Useful links:
 * [How to work with Let's Encrypt add-on](https://jelastic.com/blog/free-ssl-certificates-with-lets-encrypt/)
 * [How to bind custom domain via CNAME](https://docs.jelastic.com/custom-domain-via-cname)
 * [How to bind custom domain via A Record](https://docs.jelastic.com/custom-domain-via-arecord)
-
