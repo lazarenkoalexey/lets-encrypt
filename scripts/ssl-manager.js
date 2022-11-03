@@ -153,7 +153,8 @@ function SSLManager(config) {
                     type: "success",
                     data: {
                         skippedDomains: me.getSkippedDomains()
-                    }
+                    },
+                    skippedDomains: resp.skippedDomains
                 }
             }
         }
@@ -1488,8 +1489,9 @@ function SSLManager(config) {
             skippedDomains = me.getSkippedDomains(),
             expiredResp;
 
+        api.marketplace.console.WriteLog("skippedDomains-> " + skippedDomains);
         skippedDomains = skippedDomains.join(SEPARATOR);
-
+        api.marketplace.console.WriteLog("skippedDomains-> " + skippedDomains);
         if (resp.result != 0) {
             if (isUpdate) {
                 expiredResp = me.exec(me.checkUpdateExpiration);
