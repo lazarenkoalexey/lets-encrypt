@@ -355,6 +355,7 @@ function SSLManager(config) {
     me.uninstall = function () {
         var autoUpdateScript = nodeManager.getScriptPath(AUTO_UPDATE_SCRIPT);
         log("uninstall config.nodeGroup->" + config.nodeGroup);
+        log("nodeManager.getNode->" + nodeManager.getNode());
 
         return me.execAll([
             [ me.cmd, "crontab -l 2>/dev/null | grep -v '%(scriptPath)' | crontab -", {
@@ -598,7 +599,7 @@ function SSLManager(config) {
     me.createScriptAndInstall = function createInstallationScript() {
         var resp = me.initCustomConfigs();
         if (resp.result != 0) return resp;
-
+        
         resp =  me.exec([
             [ me.initAddOnExtIp, config.withExtIp ],
             [ me.initWebrootMethod, config.webroot ],
@@ -1387,6 +1388,7 @@ function SSLManager(config) {
         var scriptUrl = me.getScriptUrl(AUTO_UPDATE_SCRIPT);
 
         log("scheduleAutoUpdate config.nodeId->" + config.nodeId);
+        log("nodeManager.getNode->" + nodeManager.getNode());
 
         return nodeManager.cmd([
             "wget --no-check-certificate '%(url)' -O %(scriptPath)",
