@@ -7,7 +7,7 @@ function SSLManager(config) {
      *      envDomain : {String}
      *      envAppid : {String}
      *      baseUrl : {String}
-     *      baseDir : {String}     
+     *      baseDir : {String}
      *      scriptName : {String}
      *      cronTime : {String}
      *      email : {String}
@@ -598,7 +598,7 @@ function SSLManager(config) {
     me.createScriptAndInstall = function createInstallationScript() {
         var resp = me.initCustomConfigs();
         if (resp.result != 0) return resp;
-        
+
         resp =  me.exec([
             [ me.initAddOnExtIp, config.withExtIp ],
             [ me.initWebrootMethod, config.webroot ],
@@ -1386,7 +1386,7 @@ function SSLManager(config) {
     me.scheduleAutoUpdate = function scheduleAutoUpdate(crontime) {
         var scriptUrl = me.getScriptUrl(AUTO_UPDATE_SCRIPT);
 
-        log("nodeId->" + nodeId);
+        log("scheduleAutoUpdate config.nodeId->" + config.nodeId);
 
         return nodeManager.cmd([
             "wget --no-check-certificate '%(url)' -O %(scriptPath)",
@@ -1454,13 +1454,13 @@ function SSLManager(config) {
         if (hookType == "js") {
             return me.exec(me.evalCode, hookBody, config);
         }
-        
+
         hookQuotedParts = hookBody.match(/^"(.*)"$|^'(.*)'$/);
-        
+
         if (hookQuotedParts) {
             hookBody = hookQuotedParts[1] || hookQuotedParts[2];
         }
-        
+
         return me.exec(me.cmd, [
             'hook=$(cat << \'EOF\'', '%(hook)', 'EOF', ')',
             'test -f "${hook}" && /bin/bash "${hook}" >> %(log) || /bin/bash -c "${hook}" >> %(log)'
