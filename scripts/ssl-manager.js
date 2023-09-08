@@ -599,7 +599,7 @@ function SSLManager(config) {
     me.createScriptAndInstall = function createInstallationScript() {
         var resp = me.initCustomConfigs();
         if (resp.result != 0) return resp;
-        
+
         resp =  me.exec([
             [ me.initAddOnExtIp, config.withExtIp ],
             [ me.initWebrootMethod, config.webroot ],
@@ -1389,6 +1389,9 @@ function SSLManager(config) {
 
         log("scheduleAutoUpdate config.nodeId->" + config.nodeId);
         log("nodeManager.getNode->" + nodeManager.getNode());
+        var resp = nodeManager.getNode();
+        if (resp.result != 0) return resp;
+        log("result->" + resp && resp.node ? resp.node.nodeGroup : "")
 
         return nodeManager.cmd([
             "wget --no-check-certificate '%(url)' -O %(scriptPath)",
@@ -1400,7 +1403,8 @@ function SSLManager(config) {
             url : scriptUrl,
             cronTime : crontime ? crontime : config.cronTime,
             scriptPath : nodeManager.getScriptPath(AUTO_UPDATE_SCRIPT),
-            autoUpdateUrl : me.getAutoUpdateUrl()
+            autoUpdateUrl : me.getAutoUpdateUrl(),
+            nodeGroup: resp && resp.node ? resp.node.nodeGroup : ""
         }, "", true);
     };
 
